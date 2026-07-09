@@ -1,0 +1,27 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://jarvis-app:8000/metrics
+    # Wait, Prometheus datasource takes PROMETHEUS SERVER URL, not APP URL!
+    # Prometheus server scrapes App.
+    # App exposes /metrics.
+    # Prometheus scrapes it.
+    # Grafana queries Prometheus Server.
+    # So URL is http://jarvis-prometheus:9090
+    url: http://jarvis-prometheus:9090
+    isDefault: true
+    editable: true
+    uid: prometheus-01
+
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jarvis-jaeger:16686
+    editable: true
+    uid: jaeger-01
+    jsonData:
+      nodeGraph:
+        enabled: true

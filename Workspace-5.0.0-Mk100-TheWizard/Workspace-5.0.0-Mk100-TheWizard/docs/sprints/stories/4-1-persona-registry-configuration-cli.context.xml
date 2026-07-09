@@ -1,0 +1,250 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Persona Registry &amp; Configuration CLI</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-30</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-1-persona-registry-configuration-cli.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>PM</asA>
+    <iWant>manage personas via YAML + CLI commands</iWant>
+    <soThat>I can tune the Council of Ricks without editing code</soThat>
+    <tasks>
+      - Task 1: Define persona schema and YAML structure
+        * Create src/jarvis/agents/config/personas.yaml with schema
+        * Add pydantic schema PersonaConfig in src/jarvis/agents/personas.py
+        * Validate weight totals sum to 100% across enabled personas
+        * Add JSON schema documentation
+      - Task 2: Implement persona storage in PostgreSQL
+        * Design personas table schema (already exists in models.py - AgentPersona)
+        * Create Alembic migration (table already created in initial migration 0f3513bed9f3)
+        * Implement PersonaModel in src/jarvis/database/models.py (already exists!)
+        * Add CRUD operations for persona management
+      - Task 3: Build CLI commands for persona management
+        * Create src/jarvis/cli/commands/personas.py with Typer app
+        * Implement jarvis personas list/add/update/enable/disable
+        * Add parameter validation and error handling
+      - Task 4: Implement hot-reload for persona changes
+        * Add persona registry watcher in src/jarvis/agents/orchestrator.py
+        * Implement hot-reload mechanism using importlib.reload()
+        * Sync YAML changes to PostgreSQL on file modification
+      - Task 5: Tests (all ACs)
+        * Unit tests for PersonaConfig pydantic schema validation
+        * Unit tests for weight totals validation (must sum to 100%)
+        * Unit tests for CLI command parsing and validation
+        * Integration test: personas YAML → PostgreSQL sync
+        * Integration test: hot-reload on personas.yaml modification
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given personas.yaml defines agents, When the user runs "jarvis personas list/add/update", Then personas sync to PostgreSQL and the CLI validates weight totals, And changes hot-reload without restart.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4: Council of Ricks Multi-Agent Reasoning</title>
+        <section>Story 4.1: Persona Registry &amp; Configuration CLI</section>
+        <snippet>Use pydantic for schema validation; store persona metadata in DB for audit history. Personas sync to PostgreSQL and CLI validates weight totals. Changes hot-reload without restart.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Persona System Structure</title>
+        <section>Project Structure - src/jarvis/agents/</section>
+        <snippet>Council of Ricks module at src/jarvis/agents/ with orchestrator.py (Rickiest Rick), personas.py (agent definitions), consensus.py (weighted voting 40/20/10/30), and config/personas.yaml for configurations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Configuration Management</title>
+        <section>Decision Summary Table</section>
+        <snippet>Configuration: pydantic-settings + YAML pattern. Type-safe config validation, YAML for structure, .env for secrets. Hot-Reload: importlib.reload() pattern for dynamic module loading without restart.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/3-4-citation-first-response-formatting.md</path>
+        <title>Previous Story Learnings - CLI Patterns</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>src/jarvis/cli/query.py demonstrates Typer command structure with parameter validation and error handling. Settings.py + YAML pattern established. Use structlog metadata-only logging. Unit + integration test patterns at tests/unit/cli/ and tests/integration/cli/.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>model</kind>
+        <symbol>AgentPersona</symbol>
+        <lines>180-204</lines>
+        <reason>AgentPersona model ALREADY EXISTS with id, name, system_prompt, weight (Numeric 3,2), is_active, created_at fields. Table created in initial migration. DO NOT recreate - reuse this model.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/config/settings.py</path>
+        <kind>configuration</kind>
+        <symbol>Settings, @dataclass</symbol>
+        <lines>1-200</lines>
+        <reason>Demonstrates pydantic @dataclass pattern with Settings.from_dict() for YAML loading. Shows validation, type coercion, and clamping patterns (lines 93-98 expansion_count clamping). Extend with PersonaConfig dataclass.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>cli</kind>
+        <symbol>@app.command()</symbol>
+        <lines>1-99</lines>
+        <reason>Typer CLI command pattern: app = typer.Typer(), @app.command() decorator, parameter validation (lines 67-89), config precedence (CLI overrides YAML), error messages with typer.echo() and typer.Exit(code=1).</reason>
+      </artifact>
+      <artifact>
+        <path>alembic/versions/0f3513bed9f3_create_conversation_storage_schema.py</path>
+        <kind>migration</kind>
+        <symbol>upgrade()</symbol>
+        <lines>20-34</lines>
+        <reason>Alembic migration example. Shows agent_personas table ALREADY CREATED (lines 25-34) with correct schema. DO NOT create duplicate migration - table exists. Use for reference or extend if needed.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/cli/test_query.py</path>
+        <kind>test</kind>
+        <symbol>pytest fixtures, CliRunner</symbol>
+        <lines>1-49</lines>
+        <reason>Unit test pattern for CLI commands: use typer.testing.CliRunner, pytest.fixture for mocks, unittest.mock.patch for dependencies, assert result.exit_code == 0 for success.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <python>
+        <package name="typer" version="^0.12.0" extras="[all]" />
+        <package name="pydantic" version="^2.9.0" />
+        <package name="pydantic-settings" version="^2.5.0" />
+        <package name="sqlalchemy" version="^2.0.0" />
+        <package name="alembic" version="^1.13.0" />
+        <package name="structlog" version="^24.1.0" />
+        <package name="pytest" version="^8.3.0" />
+        <package name="pytest-cov" version="^6.0.0" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - CRITICAL: AgentPersona model and agent_personas table ALREADY EXIST. DO NOT recreate. Reuse existing model from src/jarvis/database/models.py (lines 180-204).
+    - Weight validation: Enabled personas weights must sum to exactly 100% (1.00 decimal). Display warning if weights don't sum correctly.
+    - Default weights from architecture.md line 109: 40/20/10/30 distribution (0.40, 0.20, 0.10, 0.30).
+    - Configuration pattern: Use pydantic @dataclass with validation (follow settings.py pattern lines 44-51 QueryConfig).
+    - Hot-reload: Use importlib.reload() pattern from architecture.md line 59. Monitor personas.yaml for file modifications.
+    - Structured logging: Use structlog for all persona operations (create, update, reload) with metadata-only (no sensitive data).
+    - CLI framework: Typer with type-hint driven commands. Follow query.py patterns for parameter validation (lines 67-89).
+    - Error handling: Use typer.echo() for messages, typer.Exit(code=1) for errors, validate all inputs.
+    - Testing: Unit tests with pytest, CliRunner for CLI, fixtures for mocks. Integration tests for YAML → PostgreSQL sync and hot-reload.
+    - File locations per architecture.md:
+      * Configuration: src/jarvis/agents/config/personas.yaml
+      * Schema: src/jarvis/agents/personas.py (PersonaConfig dataclass)
+      * Orchestrator: src/jarvis/agents/orchestrator.py (persona registry + hot-reload)
+      * CLI: src/jarvis/cli/commands/personas.py (new file)
+      * Tests: tests/unit/agents/test_personas.py, tests/unit/cli/test_personas_cli.py, tests/integration/agents/test_persona_hot_reload.py
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>AgentPersona (SQLAlchemy Model - EXISTING)</name>
+      <kind>database model</kind>
+      <signature>
+        class AgentPersona(Base):
+            id: int (PK, autoincrement)
+            name: str (unique, 100 chars) - "Rickiest Rick", "Supportive Rick", etc.
+            system_prompt: str (Text)
+            weight: Decimal (3,2) - 0.40, 0.20, 0.10, 0.30 (must sum to 1.00)
+            is_active: bool (default True)
+            created_at: datetime (UTC timezone-aware)
+      </signature>
+      <path>src/jarvis/database/models.py</path>
+    </interface>
+    <interface>
+      <name>Settings.from_dict()</name>
+      <kind>configuration loader</kind>
+      <signature>
+        @classmethod
+        def from_dict(cls, data: Dict[str, Any]) -&gt; Settings:
+            # Load from YAML/JSON dict, validate types, apply defaults
+      </signature>
+      <path>src/jarvis/config/settings.py</path>
+    </interface>
+    <interface>
+      <name>Typer CLI Command Pattern</name>
+      <kind>CLI framework</kind>
+      <signature>
+        app = typer.Typer(help="Description")
+
+        @app.command()
+        def command_name(
+            param: str,
+            optional: Optional[int] = None,
+        ) -&gt; None:
+            # Validate inputs
+            if invalid:
+                typer.echo("Error: message", err=True)
+                raise typer.Exit(code=1)
+            # Execute logic
+      </signature>
+      <path>src/jarvis/cli/query.py</path>
+    </interface>
+    <interface>
+      <name>Alembic Migration Pattern</name>
+      <kind>database migration</kind>
+      <signature>
+        def upgrade() -&gt; None:
+            op.create_table('table_name',
+                sa.Column('id', sa.Integer(), ...),
+                ...
+            )
+
+        def downgrade() -&gt; None:
+            op.drop_table('table_name')
+      </signature>
+      <path>alembic/versions/*.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: pytest 8.3+ with coverage reporting (--cov=jarvis --cov-report=term-missing).
+      Unit tests: Use pytest fixtures for mocks, unittest.mock.patch for dependencies, MagicMock for test doubles.
+      CLI tests: Use typer.testing.CliRunner, assert result.exit_code for success/failure.
+      Integration tests: Mark with @pytest.mark.integration, require Docker services (PostgreSQL).
+      Coverage target: High coverage on new code (aim for 90%+ on persona module).
+      Test structure: Arrange-Act-Assert pattern, descriptive test names (test_weight_validation_sum_not_100_raises_error).
+      Assertions: Use specific assertions (assert result.exit_code == 0, assert "error message" in result.stdout).
+    </standards>
+
+    <locations>
+      - tests/unit/agents/ - Unit tests for persona schema and validation
+      - tests/unit/cli/ - CLI command tests with CliRunner
+      - tests/integration/agents/ - Hot-reload integration tests
+      - tests/integration/cli/ - End-to-end CLI integration tests
+    </locations>
+
+    <ideas>
+      AC #1 - Persona YAML &amp; CLI Sync:
+        - test_persona_config_validates_weight_totals_sum_to_100()
+        - test_persona_config_rejects_weights_not_summing_to_100()
+        - test_persona_config_loads_from_yaml()
+        - test_cli_personas_list_displays_all_personas()
+        - test_cli_personas_add_creates_persona_in_db()
+        - test_cli_personas_update_modifies_persona()
+        - test_cli_personas_enable_activates_persona()
+        - test_cli_personas_disable_deactivates_persona()
+        - test_yaml_changes_sync_to_postgresql()
+
+      AC #1 - Hot-reload:
+        - test_persona_registry_detects_yaml_file_modification()
+        - test_hot_reload_updates_in_memory_registry_without_restart()
+        - test_hot_reload_syncs_yaml_to_postgresql()
+        - test_invalid_yaml_does_not_crash_hot_reload()
+
+      Edge cases:
+        - test_weight_validation_allows_disabled_personas_any_weight()
+        - test_cli_error_handling_for_missing_persona()
+        - test_cli_validation_for_invalid_weight_range()
+        - test_duplicate_persona_names_rejected()
+    </ideas>
+  </tests>
+</story-context>

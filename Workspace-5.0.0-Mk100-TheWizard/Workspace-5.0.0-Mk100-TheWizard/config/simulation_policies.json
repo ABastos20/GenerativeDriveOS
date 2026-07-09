@@ -1,0 +1,16 @@
+{
+  "version": "11.7.0",
+  "promotion_rules": {
+    "synthetic": {
+      "allowed": ["provisional"],
+      "blocked": ["primary", "governance"]
+    }
+  },
+  "replay": {
+    "deterministic": true,
+    "stochastic_bounds": "mean_delta<=0.1"
+  },
+  "self_training": {
+    "requires_waiver": true
+  }
+}

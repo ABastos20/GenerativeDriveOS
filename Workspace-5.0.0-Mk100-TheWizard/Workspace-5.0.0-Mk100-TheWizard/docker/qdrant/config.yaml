@@ -1,0 +1,10 @@
+log_level: INFO
+
+service:
+  grpc_port: 6334
+  http_port: 6333
+
+storage:
+  on_disk_payload: true
+  optimizers:
+    default_segment_number: 2

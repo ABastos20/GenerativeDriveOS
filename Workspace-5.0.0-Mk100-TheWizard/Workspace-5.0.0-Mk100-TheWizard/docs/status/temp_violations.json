@@ -1,0 +1,92 @@
+[
+  {
+    "file": "src\\jarvis\\agents\\persona_db.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'PersonaDB' has complexity 23 (Limit: 15)",
+    "line": 21
+  },
+  {
+    "file": "src\\jarvis\\arches\\controller.py",
+    "rule": "MAX_FILE_LOC",
+    "message": "File has 912 LOC (Limit: 800)",
+    "line": 0
+  },
+  {
+    "file": "src\\jarvis\\arches\\controller.py",
+    "rule": "MAX_METHODS",
+    "message": "Class 'ARCHESController' has 21 methods (Limit: 20)",
+    "line": 187
+  },
+  {
+    "file": "src\\jarvis\\arches\\controller.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'ARCHESController' has complexity 85 (Limit: 15)",
+    "line": 187
+  },
+  {
+    "file": "src\\jarvis\\cli\\query.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function 'query' has 667 LOC (Limit: 120)",
+    "line": 83
+  },
+  {
+    "file": "src\\jarvis\\controllers\\chat_controller.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'ChatController' has complexity 51 (Limit: 15)",
+    "line": 39
+  },
+  {
+    "file": "src\\jarvis\\controllers\\chat_controller.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function 'process_chat' has 250 LOC (Limit: 120)",
+    "line": 51
+  },
+  {
+    "file": "src\\jarvis\\llm\\providers.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'GoogleAIProvider' has complexity 44 (Limit: 15)",
+    "line": 334
+  },
+  {
+    "file": "src\\jarvis\\llm\\providers.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function 'call' has 121 LOC (Limit: 120)",
+    "line": 416
+  },
+  {
+    "file": "src\\jarvis\\memory\\domain_catalog.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function '_heuristic_metadata_from_payload' has 190 LOC (Limit: 120)",
+    "line": 155
+  },
+  {
+    "file": "src\\jarvis\\memory\\domain_catalog.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function 'catalog_documents' has 230 LOC (Limit: 120)",
+    "line": 531
+  },
+  {
+    "file": "src\\jarvis\\memory\\file_watcher.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'JarvisFileEventHandler' has complexity 17 (Limit: 15)",
+    "line": 26
+  },
+  {
+    "file": "src\\jarvis\\memory\\ingest.py",
+    "rule": "MAX_FUNC_LOC",
+    "message": "Function 'ingest_file' has 178 LOC (Limit: 120)",
+    "line": 232
+  },
+  {
+    "file": "src\\jarvis\\memory\\research_planner.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'ResearchPlanner' has complexity 17 (Limit: 15)",
+    "line": 38
+  },
+  {
+    "file": "src\\jarvis\\monitoring\\health_monitor.py",
+    "rule": "MAX_COMPLEXITY",
+    "message": "Class 'HealthMonitor' has complexity 23 (Limit: 15)",
+    "line": 74
+  }
+]

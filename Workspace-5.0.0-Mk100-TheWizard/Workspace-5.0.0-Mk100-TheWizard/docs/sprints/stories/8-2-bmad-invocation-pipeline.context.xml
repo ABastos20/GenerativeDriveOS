@@ -1,0 +1,103 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>8-2</storyId>
+    <title>BMAD Invocation Pipeline</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-2-bmad-invocation-pipeline.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis system capable of self-improvement</asA>
+    <iWant>a standardized pipeline to invoke Build/Make/Analyze/Deploy actions</iWant>
+    <soThat>I can safely execute improvements in a controlled, traceable manner</soThat>
+    <tasks>
+      <task id="1">Create Pipeline schema (YAML/JSON) with steps, dependencies, timeouts</task>
+      <task id="2">Create PipelineStep model with type (build/test/analyze/deploy/rollback)</task>
+      <task id="3">Create PipelineExecutor class with run, run_step, rollback methods</task>
+      <task id="4">Create Sandbox class with execute, validate_command methods</task>
+      <task id="5">Implement command allowlist validation</task>
+      <task id="6">Implement resource limits (CPU, memory, time)</task>
+      <task id="7">Create API endpoints for pipeline execution and status</task>
+      <task id="8">Create audit trail logging for all pipeline actions</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Pipeline Definition: YAML/JSON schema for pipeline steps</criterion>
+    <criterion id="AC2">Step Types: build, test, analyze, deploy, rollback</criterion>
+    <criterion id="AC3">Dependency Graph: Steps can depend on previous steps</criterion>
+    <criterion id="AC4">Timeout & Retry: Configurable per step</criterion>
+    <criterion id="AC5">PipelineExecutor Class: Runs pipelines in sandboxed environment</criterion>
+    <criterion id="AC6">Sandbox Isolation: Docker-based or subprocess isolation</criterion>
+    <criterion id="AC7">Output Capture: Structured logging of all step outputs</criterion>
+    <criterion id="AC8">Failure Handling: Auto-rollback on step failure</criterion>
+    <criterion id="AC9">API Endpoint: POST /api/admin/pipelines/run triggers pipeline</criterion>
+    <criterion id="AC10">Status Tracking: GET /api/admin/pipelines/{id}/status</criterion>
+    <criterion id="AC11">History: GET /api/admin/pipelines/history</criterion>
+    <criterion id="AC12">Cancel: POST /api/admin/pipelines/{id}/cancel</criterion>
+    <criterion id="AC13">Allowlist Commands: Only pre-approved commands can run</criterion>
+    <criterion id="AC14">Resource Limits: CPU, memory, time limits</criterion>
+    <criterion id="AC15">Audit Trail: Every action logged with trace_id</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-8-planning.md" title="Epic 8 Planning" section="8-2: BMAD Invocation Pipeline" snippet="Goal: Standardized way to invoke Build/Make/Analyze/Deploy actions. Mechanism: PipelineExecutor that runs safe, sandboxed commands."/>
+      <doc path="docs/features/autonomous-knowledge-graph.md" title="Knowledge Graph" section="Governance" snippet="References governance gating patterns for autonomous actions."/>
+      <doc path="src/jarvis/memory/governance_node.py" title="Governance Node" section="GovernanceGate" snippet="Pattern for approval gates before autonomous actions."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/memory/governance_node.py" kind="governance" symbol="GovernanceGate" lines="55-120" reason="Pattern for gating autonomous actions with approval requirements"/>
+      <file path="src/jarvis/observability/tracing.py" kind="observability" symbol="trace context" lines="1-50" reason="Pattern for trace_id and audit logging"/>
+      <file path="src/jarvis/api/memory.py" kind="api" symbol="router" lines="1-50" reason="Pattern for FastAPI async endpoints"/>
+      <file path="docker/docker-compose.yml" kind="config" symbol="jarvis-app" lines="1-30" reason="Docker context for sandbox execution"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version="^2.0"/>
+        <package name="pyyaml" version="^6.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="asyncio" version="stdlib"/>
+        <package name="subprocess" version="stdlib"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>DORMANT: Pipeline execution is NOT auto-triggered until governance approval</constraint>
+    <constraint>All commands must be validated against allowlist before execution</constraint>
+    <constraint>Resource limits must be enforced (CPU/memory/time)</constraint>
+    <constraint>Every action must have trace_id for audit trail</constraint>
+    <constraint>Pipeline definitions stored in config/pipelines/</constraint>
+    <constraint>Use subprocess isolation (Docker exec or subprocess.run with limits)</constraint>
+    <constraint>Follow existing logging patterns from observability module</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="POST /api/admin/pipelines/run" kind="REST" signature="POST /api/admin/pipelines/run {pipeline_name: str} -> {run_id: UUID, status: str}" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/pipelines/{id}/status" kind="REST" signature="GET /api/admin/pipelines/{id}/status -> {status: str, steps: List[StepStatus]}" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/pipelines/history" kind="REST" signature="GET /api/admin/pipelines/history?limit=50 -> {runs: List[PipelineRun]}" path="src/jarvis/api/admin.py"/>
+    <interface name="POST /api/admin/pipelines/{id}/cancel" kind="REST" signature="POST /api/admin/pipelines/{id}/cancel -> {status: str}" path="src/jarvis/api/admin.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with async fixtures. Mock subprocess calls. Test timeout and resource limits. Test rollback on failure.</standards>
+    <locations>
+      <location>tests/unit/test_pipeline_executor.py</location>
+      <location>tests/unit/test_sandbox.py</location>
+      <location>tests/integration/test_pipeline_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC1">Test pipeline YAML parsing with valid/invalid schemas</idea>
+      <idea acId="AC3">Test dependency resolution order</idea>
+      <idea acId="AC5">Test PipelineExecutor runs steps in order</idea>
+      <idea acId="AC6">Test sandbox isolation prevents breakout</idea>
+      <idea acId="AC8">Test auto-rollback on step failure</idea>
+      <idea acId="AC13">Test allowlist rejects unapproved commands</idea>
+      <idea acId="AC15">Test audit trail logs all actions</idea>
+    </ideas>
+  </tests>
+</story-context>

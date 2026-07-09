@@ -1,0 +1,124 @@
+<story-context id="11-1b-bmad-agent-cognition" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-1b</storyId>
+    <title>Behavioral Model for Autonomous Decisions (BMAD)</title>
+    <status>done</status>
+    <generatedAt>2025-12-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-1b-bmad-agent-cognition.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>System Architect</asA>
+    <iWant>LLM-backed autonomous agents with epistemic autonomy and safety locks</iWant>
+    <soThat>Governance simulation can demonstrate emergent failure modes while remaining safe and controllable</soThat>
+    <tasks>
+      <task id="1">Implement Prompt Filtering in CapabilityIndex</task>
+      <task id="2">Enforce CLI Safe Mode in LocalCLIProvider</task>
+      <task id="3">Add Workflow Capability Ceilings to BMAD/BMM</task>
+      <task id="4">Telemetry for Blocked Prompts (Intent Drift Detection)</task>
+      <task id="5">Update ReasoningEngine with Five Locks Enforcement</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Three Locks Implemented">
+      <item>LLM Sandboxing: ReasoningEngine only produces ActionCandidate</item>
+      <item>Math Sovereignty: Goals derived via argmax(Belief * Value)</item>
+      <item>Audit Logs: All suggestions logged with expected_effect, confidence</item>
+    </ac>
+    <ac id="2" title="Prompt Filtering (Pre-Tool)">
+      <item>Pattern matching for forbidden developer-mode triggers</item>
+      <item>Applied before CLI invocation for narrative capabilities</item>
+      <item>Logged when triggered</item>
+    </ac>
+    <ac id="3" title="CLI Safe Mode">
+      <item>Codex/Claude invocations use safe flags</item>
+      <item>Operational persona prepended to prompts</item>
+      <item>No file access or shell execution</item>
+    </ac>
+    <ac id="4" title="Workflow Capability Ceilings">
+      <item>BMAD/BMM workflows tagged with max_capability</item>
+      <item>Steps cannot exceed workflow ceiling</item>
+      <item>Prompts filtered at workflow execution time</item>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-1b-bmad-agent-cognition.md" title="BMAD Story" section="Five Locks" snippet="Defines the Five Locks architecture: LLM Sandboxing, Math Sovereignty, Audit Logs, Capability Index, Prompt and Tool Sovereignty"/>
+      <doc path="docs/sprints/stories/11-2-capability-index.md" title="Capability Index Story" section="Architecture" snippet="Defines the fourth lock: constitutional permission gate for action validation"/>
+      <doc path="docs/reference/architecture.md" title="Architecture Reference" section="Cognitive Safety" snippet="Constitutional AI safety patterns and governance integration"/>
+    </docs>
+    <code>
+      <file path="src/jarvis/agents/base.py" kind="interface" symbol="BaseAgent" reason="Cognitive interface for agents with epistemic loop"/>
+      <file path="src/jarvis/agents/proposer.py" kind="agent" symbol="ProposerAgent" reason="Goal-driven proposal generation"/>
+      <file path="src/jarvis/agents/voter.py" kind="agent" symbol="VoterAgent" reason="Trust-weighted voting logic"/>
+      <file path="src/jarvis/agents/analyst.py" kind="agent" symbol="AnalystAgent" reason="CSI computation and telemetry"/>
+      <file path="src/jarvis/agents/reasoning_engine.py" kind="engine" symbol="ReasoningEngine" reason="LLM integration with Three Locks enforcement"/>
+      <file path="src/jarvis/agents/budget_guard.py" kind="guard" symbol="LLMGlobalBudgetGuard" reason="Budget controls for LLM calls"/>
+      <file path="src/jarvis/llm/providers.py" kind="provider" symbol="LocalCLIProvider" reason="CLI invocation with safe mode flags"/>
+      <file path="src/jarvis/llm/client.py" kind="client" symbol="call_llm" reason="Provider routing with fallback chain"/>
+      <file path="scripts/tests/simulate_hybrid.py" kind="test" symbol="HybridSimulation" reason="Integration testing for agent cognition"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="openai" version=">=1.0.0" reason="LLM API access"/>
+        <package name="anthropic" version=">=0.18.0" reason="Claude API access"/>
+        <package name="structlog" version=">=24.0.0" reason="Audit logging"/>
+      </python>
+      <cli>
+        <tool name="codex" flags="exec --json --skip-git-repo-check --color never" reason="Seat-based LLM access"/>
+        <tool name="claude" flags="-p --output-format json" reason="Seat-based LLM access"/>
+      </cli>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="safety">LLM cannot directly mutate beliefs, goals, trust, or governance</constraint>
+    <constraint type="safety">Goals must be derived mathematically via argmax(Belief * Value)</constraint>
+    <constraint type="safety">All LLM suggestions must be logged with expected_effect and confidence</constraint>
+    <constraint type="safety">Prompts containing developer-mode triggers must be blocked</constraint>
+    <constraint type="safety">CLI tools must use safe mode flags preventing file/shell access</constraint>
+    <constraint type="architecture">BMAD/BMM workflows must have max_capability ceilings</constraint>
+    <constraint type="budget">LLM calls must stay within $20 hard budget cap</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="ActionCandidate" kind="dataclass" path="src/jarvis/agents/base.py" signature="@dataclass ActionCandidate: action_type: str, target: str, confidence: float, expected_effect: str, reasoning: str"/>
+    <interface name="CapabilityIndex.is_allowed" kind="method" path="src/jarvis/governance/capabilities.py" signature="is_allowed(action_type: str, agent_role: str) -> Decision"/>
+    <interface name="CapabilityIndex.validate_prompt" kind="method" path="src/jarvis/governance/capabilities.py" signature="validate_prompt(prompt: str, capability: str) -> tuple[bool, str]"/>
+    <interface name="ReasoningEngine.generate" kind="method" path="src/jarvis/agents/reasoning_engine.py" signature="generate(prompt: str) -> str"/>
+    <interface name="LocalCLIProvider._build_command" kind="method" path="src/jarvis/llm/providers.py" signature="_build_command(prompt: str, output_file: str = None) -> list[str]"/>
+  </interfaces>
+
+  <tests>
+    <standards>pytest-based unit and integration tests. Agents tested via HybridSimulation with mock and real LLM providers. Telemetry validation via output artifacts.</standards>
+    <locations>
+      <location>scripts/tests/simulate_hybrid.py</location>
+      <location>tests/agents/</location>
+      <location>tests/governance/</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test that ActionCandidate is the only output type from ReasoningEngine</idea>
+      <idea ac="1">Test that goals are derived from argmax formula, not LLM suggestion</idea>
+      <idea ac="1">Test that all suggestions have expected_effect and confidence fields</idea>
+      <idea ac="2">Test prompt filtering blocks "implement", "refactor", "modify file" patterns</idea>
+      <idea ac="2">Test that blocked prompts are logged with pattern matched</idea>
+      <idea ac="3">Test codex CLI invoked with exec --json flags</idea>
+      <idea ac="3">Test claude CLI invoked with -p --output-format json flags</idea>
+      <idea ac="3">Test operational persona prepended to CLI prompts</idea>
+      <idea ac="4">Test workflow ceiling enforcement prevents capability escalation</idea>
+      <idea ac="4">Test prompts filtered at workflow execution time</idea>
+    </ideas>
+  </tests>
+
+  <fiveLocks>
+    <lock id="1" name="LLM Sandboxing" story="11-1b" description="LLM cannot directly act"/>
+    <lock id="2" name="Math Sovereignty" story="11-1b" description="LLM cannot choose goals"/>
+    <lock id="3" name="Audit Logs" story="11-1b" description="LLM cannot hide epistemic damage"/>
+    <lock id="4" name="Capability Index" story="11-2" description="LLM cannot request forbidden actions"/>
+    <lock id="5" name="Prompt and Tool Sovereignty" story="11-3" description="LLM cannot self-escalate into developer mode"/>
+  </fiveLocks>
+</story-context>

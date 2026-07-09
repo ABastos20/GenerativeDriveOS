@@ -1,0 +1,193 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.4</storyId>
+    <title>Citation-First Response Formatting</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-28</generatedAt>
+    <generator>BMAD Story Context Workflow (simulated)</generator>
+    <sourceStoryPath>docs/sprints/stories/3-4-citation-first-response-formatting.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>end user</asA>
+    <iWant>every answer to clearly cite its sources</iWant>
+    <soThat>I can quickly verify correctness and provenance</soThat>
+    <tasks>
+**Task 1:** Define citation metadata schema (AC: #2, #3)  
+  - Confirm/extend `SearchResult` and JSON envelope shape to include: `source_file`, `section`, `domain`, `score`, optional `chunk_id` and `hash`.  
+  - Document the `sources[]` structure in `docs/full-documentation.md` and `README.md` (API/CLI examples).  
+
+**Task 2:** CLI human‑readable formatting (AC: #1, #2, #4)  
+  - Ensure `src/jarvis/cli/query.py` renders:  
+    - An answer block.  
+    - A “Sources” block with numbered entries `[1]`, `[2]`, … including filename, domain, section, and score.  
+  - Make the format stable and visually scannable (no heavy markdown tables).  
+  - Handle the “no sources” case with an explicit message (e.g., “No context retrieved – answer may be unconstrained”).  
+
+**Task 3:** JSON envelope provenance (AC: #3)  
+  - Extend/confirm the `--json-output` envelope in `src/jarvis/cli/query.py` to emit a `sources[]` array, each entry including:  
+    - `id`: citation index (1‑based).  
+    - `source_file`: workspace‑relative path.  
+    - `section`: logical heading / filename.  
+    - `domain`: `jarvis-core`, `jarvis-conversations`, `jarvis-insights`, etc.  
+    - `score` / `relevance_score`: hybrid similarity score (float).  
+    - Optional: `chunk_id`, `hash`.  
+  - Ensure this schema aligns with MCP/server needs and is stable for future tools.  
+
+**Task 4:** Conversation log storage of citations (nice‑to‑have from epic notes)  
+  - Evaluate whether to persist citation metadata alongside conversations in PostgreSQL (e.g., in `messages.metadata` or a dedicated table).  
+  - If implemented, add a compact representation of `sources[]` to the message record for later review.  
+
+**Task 5:** Tests (AC: all)  
+  - Unit tests for citation formatting (human output) given a mocked `SearchResult[]`.  
+  - Unit tests for JSON envelope shape and field presence (including `sources[]` fields).  
+  - Unit test for the “no sources” edge case.  
+  - Integration test: run a real `jarvis query` against test memory and assert that citations correspond to actual payload metadata.  
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** the RAG pipeline returns results, **When** the LLM returns a response, **Then** the CLI renders an answer that clearly associates statements with numbered citations.  
+
+2. **Given** citations are displayed, **When** the user inspects them, **Then** each citation includes at least: filename (relative to workspace), logical section (if available), domain, and a relevance score or confidence.  
+
+3. **Given** the user chooses `--json-output`, **When** `jarvis query` completes, **Then** the JSON envelope includes a `sources[]` array with structured provenance fields (filename, section, domain, score, optional chunk_id) suitable for MCP tooling.  
+
+4. **Given** no sources are available (edge case), **When** the CLI renders output, **Then** it clearly indicates that no retrieved context was used instead of fabricating citations.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>JARVIS System - Product Requirements Document</title>
+        <section>FR1: RAG Query System / Advanced Retrieval Strategies</section>
+        <snippet>Hybrid search, query expansion and rewriting, multi-query retrieval, and re-ranking for relevance. Answers must be grounded in retrieved context with clear provenance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>FR1: RAG Query System</section>
+        <snippet>RAG engine, Vector store (Qdrant), Embeddings, Chunking. Query CLI orchestrates retrieval and LLM calls, returning structured responses.</snippet>
+      </doc>
+      <doc>
+        <path>docs/full-documentation.md</path>
+        <title>JARVIS Full Documentation</title>
+        <section>Query Results &amp; Citations</section>
+        <snippet>Describes SearchResult shape, sources[] JSON schema, and how downstream tools can use relevance_score, score, chunk_id, and hash.</snippet>
+      </doc>
+      <doc>
+        <path>README.md</path>
+        <title>JARVIS System README</title>
+        <section>Query Command &amp; Citations (Epic 3)</section>
+        <snippet>Shows sample human output and JSON envelope for jarvis query, including the 📚 SOURCES block and structured sources[] array.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>CLI module</kind>
+        <symbol>query()</symbol>
+        <lines>1-260</lines>
+        <reason>Central CLI entrypoint for RAG query. Builds context, calls LLM, renders human answer, and emits JSON envelope with sources[].</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service module</kind>
+        <symbol>SearchResult</symbol>
+        <lines>25-40</lines>
+        <reason>Defines the SearchResult dataclass (text, score, source_file, section, domain, metadata) used to build citations.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/cli/test_query.py</path>
+        <kind>test file</kind>
+        <symbol>TestContextBuilding, TestJSONOutput</symbol>
+        <lines>1-220</lines>
+        <reason>Existing tests validate citation formatting and JSON envelope structure (sources[]). Extend as needed if schema evolves.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/cli/test_query_integration.py</path>
+        <kind>test file</kind>
+        <symbol>test_json_output_structure, test_domain_filtering</symbol>
+        <lines>1-140</lines>
+        <reason>Integration tests for jarvis query CLI. Validate that sources[] is populated and domains align with filters.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="typer" version="^0.12.0">CLI framework used for jarvis query command and options such as --json-output.</package>
+        <package name="structlog" version="^24.1.0">Structured logging, helpful for tracing which sources were used for an answer.</package>
+        <package name="pytest" version="^8.3.0">Testing framework for unit and integration tests around CLI output and JSON envelope.</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+**Presentation:**
+- Human output must remain terminal-friendly and scannable.
+- Citations must not be fabricated; only use actual SearchResult data.
+- Sources block format should be stable to avoid breaking mental models or docs.
+
+**Backwards Compatibility:**
+- JSON envelope must keep existing keys used by tests and MCP tooling (query, response, sources, metadata).
+- `relevance_score` should remain supported; adding `score` is additive.
+
+**Code Quality:**
+- Follow naming conventions and typing rules described in architecture.md.
+- Keep citation logic thin; avoid entangling it with retrieval algorithms.
+
+**Testing Standards:**
+- Unit tests must cover citation formatting for both human output and JSON.
+- Integration tests must verify that emitted citations correspond to actual SearchResult payloads.
+  </constraints>
+
+  <interfaces>
+**CLI Interface:**
+```python
+# src/jarvis/cli/query.py
+@app.command()
+def query(
+    question: str,
+    provider: str = "auto",
+    source: Optional[str] = None,
+    k: int = 5,
+    max_tokens: int = 2000,
+    json_output: bool = False,
+    retriever: Optional[str] = None,
+    weight: Optional[float] = None,
+    strict_mode: bool = False,
+    expand: Optional[int] = None,
+) -> None:
+    ...
+```
+
+**JSON Envelope Interface:**
+```json
+{
+  "query": "string",
+  "response": "string",
+  "sources": [
+    {
+      "id": 1,
+      "content": "string",
+      "source_file": "string or null",
+      "section": "string or null",
+      "domain": "string or null",
+      "relevance_score": 0.0,
+      "score": 0.0,
+      "chunk_id": "string (optional)",
+      "hash": "string (optional)"
+    }
+  ],
+  "metadata": {
+    "llm_provider": "string",
+    "model": "string",
+    "total_tokens": 0,
+    "cost_usd": 0.0
+  }
+}
+```
+  </interfaces>
+</story-context>
+

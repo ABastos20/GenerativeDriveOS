@@ -1,0 +1,45 @@
+# Agent Customization
+# Customize any section below - all are optional
+# After editing: npx bmad-method build <agent-name>
+
+# Override agent name
+agent:
+  metadata:
+    name: ""
+
+# Replace entire persona (not merged)
+persona:
+  role: ""
+  identity: ""
+  communication_style: ""
+  principles: []
+
+# Add custom critical actions (appended after standard config loading)
+critical_actions: []
+
+# Add persistent memories for the agent
+memories:
+  - "JARVIS System: PowerShell-based orchestration platform"
+  - "Tech stack: PowerShell, YAML configuration, modular agents"
+  - "Integration config: .bmad/integrations.yaml (LLMs and APIs)"
+  - "Scripts location: scripts/ (init-bmad.ps1, orchestrate-jarvis.ps1)"
+  - "Security critical: Safe handling of API keys and credentials"
+  - "Windows environment (Git Bash available)"
+  - "Agent files use .md format with XML structure"
+
+# Add custom menu items (appended to base menu)
+# Don't include * prefix or help/exit - auto-injected
+menu: []
+# Example:
+# menu:
+#   - trigger: my-workflow
+#     workflow: "{project-root}/custom/my.yaml"
+#     description: My custom workflow
+
+# Add custom prompts (for action="#id" handlers)
+prompts: []
+# Example:
+# prompts:
+# - id: my-prompt
+#   content: |
+#     Prompt instructions here

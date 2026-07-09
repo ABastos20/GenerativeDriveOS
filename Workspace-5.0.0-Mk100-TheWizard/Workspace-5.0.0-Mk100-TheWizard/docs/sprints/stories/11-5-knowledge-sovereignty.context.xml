@@ -1,0 +1,209 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-5</storyId>
+    <title>Knowledge Sovereignty & Provenance Arbitration</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-5-knowledge-sovereignty.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect</asA>
+    <iWant>Jarvis to distinguish grounded knowledge from narrative information</iWant>
+    <soThat>decisions, memory, and governance are driven by verified provenance rather than internet noise</soThat>
+    <tasks>
+      <task id="1" ac="1">Implement Knowledge Tier Model</task>
+      <task id="2" ac="2">Build Provenance Ledger</task>
+      <task id="3" ac="3">Implement Dual-Persona Arbitration</task>
+      <task id="4" ac="4">Build Trust Engine</task>
+      <task id="5" ac="5">Enforce Knowledge Usage Policy</task>
+      <task id="6" ac="6">Implement Epistemic Audit Log</task>
+      <task id="7" ac="7">Bind to BMAD</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" title="Knowledge Tier Lattice">
+      Every stored knowledge unit has immutable `knowledge_tier` field (K0, K1, K2, K3, K4). Tier assignment function: Tier(i) ∈ {K0, K1, K2, K3, K4}. Tiers cannot be downgraded without audit. Governance rules can ban usage of K3/K4 for critical reasoning.
+    </criterion>
+    <criterion id="2" title="Provenance Ledger">
+      Every knowledge item carries immutable provenance vector: P(i) = ⟨s, o, m, c₀, t₀, K⟩. Ledger is append-only, cryptographically sealed with SHA-256 hashing. Full historical lineage preserved. Queryable by governance & C-IDS.
+    </criterion>
+    <criterion id="3" title="Dual-Persona Provenance Arbitration (CORE DISCOVERY)">
+      Each external claim (Tier ≥ K2) must pass two independent cognitive perspectives: Analyst (logical/technical consistency) and Adversary (attack surface, deception potential). Promotion(i) = allowed ⟺ f_A(i) = 1 ∧ f_D(i) = 1. Disagreement freezes the claim at current tier and logs to C-IDS.
+    </criterion>
+    <criterion id="4" title="Trust Weight & Decay Engine">
+      Dynamic trust: T(i,t) = c₀(i) · e^(-λ_K · (t - t₀)) where λ_K is tier-dependent decay. K0: λ=0, K1: λ=10⁻⁶, K2: λ=10⁻⁵, K3: λ=10⁻³, K4: λ=10⁻². Decay applies automatically over time. Verified reuse refreshes trust: t₀ ← t. Contradictions accelerate decay: T(i) ← α · T(i) where α ∈ [0.1, 0.5].
+    </criterion>
+    <criterion id="5" title="Knowledge Usage Policy (Formal Access Control)">
+      Governance defines usage classes: Execution Guidance {K0, K1}, Governance {K0, K1, K2}, Strategy {K0, K1, K2, K3}, Ideation {K0..K4}. Allowed(i, U) ⟺ Tier(i) ∈ U. Enforced at ReasoningEngine. Violations trigger constitutional denial.
+    </criterion>
+    <criterion id="6" title="Epistemic Audit Log">
+      All promotions, demotions, conflicts and decay events emit structured events. Event types: promotion, decay, contradiction, freeze, usage_violation. Event schema defined, audit trail queryable, integration with C-IDS for pattern detection.
+    </criterion>
+    <criterion id="7" title="BMAD/Reasoning Binding">
+      BMAD may: read all classes, propose hypotheses. BMAD may NOT: promote hypotheses to evidence, upgrade class without human/governance approval, bypass knowledge usage policy, directly modify trust weights.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/reference/prd.md</path>
+        <title>JARVIS System - Product Requirements Document</title>
+        <section>FR14: Sovereign Identity Layer (v4.1) - In Progress</section>
+        <snippet>JARVIS is not a chatbot. It's a Governed Cognitive Institution. Cognitive Architecture (ARCHES), Multi-Agent System (Council of Ricks), Governance Infrastructure (Machine Democracy), Memory System with hybrid retrieval.</snippet>
+      </doc>
+      <doc>
+        <path>docs/reference/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Core Architectural Principles (v4.x)</section>
+        <snippet>ARCHES Controller (v2.4): Centralized cognitive orchestration. Governance-First Design (v4.0): Multi-human oversight. Constitutional AI (v4.0): Core values enforced programmatically. Autonomous Knowledge Graph (v2.3): Self-maintaining entity/relationship extraction.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/epic-11-planning.md</path>
+        <title>Epic 11: Sovereign Identity Layer</title>
+        <section>Architect Notes</section>
+        <snippet>Identity is sovereign. Governance is zero-knowledge. Before we can safely activate Epistemic Autonomy (Phase 9), the system must know who is pulling the strings.</snippet>
+      </doc>
+      <doc>
+        <path>docs/archive/architectNotesEpic11.txt</path>
+        <title>Epic 11 Architect Notes</title>
+        <section>Story 11-5 (lines 15-312): Epistemic Ledger & Sovereign Knowledge Vault</section>
+        <snippet>Complete formal specifications including mathematical formalism, acceptance criteria, implementation guidance for Lock 7 (Epistemic Sovereignty).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/governance/trust.py</path>
+        <kind>module</kind>
+        <symbol>TrustCalculator</symbol>
+        <lines>1-195</lines>
+        <reason>Existing trust calculation for governance voting. Story 11-5 needs separate knowledge trust system but can reuse decay patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/epistemic_engine.py</path>
+        <kind>module</kind>
+        <symbol>detect_source_conflicts, detect_temporal_conflicts</symbol>
+        <lines>1-312</lines>
+        <reason>Existing contradiction detection. Story 11-5 adds dual-persona arbitration on top of this foundation.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/agents/reasoning_engine.py</path>
+        <kind>module</kind>
+        <symbol>LLMReasoningEngine</symbol>
+        <lines>1-603</lines>
+        <reason>Reasoning engine with Lock 4 (Capability Index) integration. Story 11-5 adds Lock 7 (Knowledge Usage Policy) enforcement here.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>module</kind>
+        <symbol>Entity, Relationship, EpistemicConflict, BeliefSnapshot</symbol>
+        <lines>various</lines>
+        <reason>Existing epistemic models. Story 11-5 adds KnowledgeUnit, ProvenanceLedger, TrustScore (knowledge) models.</reason>
+      </artifact>
+      <artifact>
+        <path>config/capability_index.json</path>
+        <kind>config</kind>
+        <symbol>capabilities</symbol>
+        <lines>1-141</lines>
+        <reason>Lock 4 capability definitions. Story 11-5 references but doesn't modify. Knowledge usage policy is separate.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0.0">PostgreSQL ORM for provenance ledger</package>
+        <package name="pydantic" version="^2.9.0">Type validation for knowledge tier enums</package>
+        <package name="structlog" version="^24.1.0">Epistemic audit logging</package>
+        <package name="python-jose" version="^3.5.0" extras="cryptography">SHA-256 hashing for provenance sealing</package>
+        <package name="sentence-transformers" version="^5.1.0">Analyst/Adversary persona embeddings</package>
+      </python>
+      <external>
+        <tool name="pytest">Unit tests for tier assignment, decay functions</tool>
+        <tool name="pytest-cov">Test coverage for epistemic components</tool>
+      </external>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architectural" priority="critical">
+      Story 11-5 introduces Lock 7 (Epistemic Sovereignty). Must integrate with existing Locks 1-6 from Stories 11-1b through 11-4. Do NOT break existing capability index, prompt firewall, or cognitive IDS integration.
+    </constraint>
+    <constraint type="data" priority="critical">
+      Provenance ledger is append-only and cryptographically sealed. NO deletions, NO direct updates. Only insertions and tier promotions/demotions via formal state transitions logged in audit trail.
+    </constraint>
+    <constraint type="philosophical" priority="critical">
+      Knowledge tier lattice is IMMUTABLE except by constitutional promotion/demotion. Tier assignment function is pure, deterministic, and cannot be overridden by LLM suggestions.
+    </constraint>
+    <constraint type="integration" priority="high">
+      ReasoningEngine (src/jarvis/agents/reasoning_engine.py) must enforce knowledge usage policy at Lock 7 checkpoint. Integrate after Lock 4 (capability) but before Lock 6 (cognitive IDS).
+    </constraint>
+    <constraint type="performance" priority="medium">
+      Trust decay calculation must be lazy (on-demand) not eager. Do NOT recompute trust for all knowledge units on every query. Cache decay results per session.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>KnowledgeTier enum</name>
+      <kind>Type definition</kind>
+      <signature>class KnowledgeTier(str, Enum): K0 = "ground_truth", K1 = "verified_derivation", K2 = "trust_scored_external", K3 = "narrative", K4 = "noise"</signature>
+      <path>src/jarvis/knowledge/tiers.py</path>
+    </interface>
+    <interface>
+      <name>ProvenanceVector</name>
+      <kind>Pydantic model</kind>
+      <signature>class ProvenanceVector(BaseModel): source_type: SourceType, origin: str, collection_method: str, initial_confidence: float, ingestion_time: datetime, tier: KnowledgeTier</signature>
+      <path>src/jarvis/knowledge/provenance.py</path>
+    </interface>
+    <interface>
+      <name>DualPersonaArbitrator.arbitrate()</name>
+      <kind>Function</kind>
+      <signature>def arbitrate(claim: KnowledgeUnit, analyst_verdict: bool, adversary_verdict: bool) -> tuple[bool, str]</signature>
+      <path>src/jarvis/knowledge/arbitration.py</path>
+    </interface>
+    <interface>
+      <name>TrustEngine.calculate_trust()</name>
+      <kind>Function</kind>
+      <signature>def calculate_trust(knowledge_unit: KnowledgeUnit, current_time: datetime) -> float</signature>
+      <path>src/jarvis/knowledge/trust_engine.py</path>
+    </interface>
+    <interface>
+      <name>UsagePolicy.is_allowed()</name>
+      <kind>Function</kind>
+      <signature>def is_allowed(knowledge_tier: KnowledgeTier, usage_class: UsageClass) -> bool</signature>
+      <path>src/jarvis/knowledge/usage_policy.py</path>
+    </interface>
+    <interface>
+      <name>EpistemicAuditLogger.log_event()</name>
+      <kind>Function</kind>
+      <signature>def log_event(event_type: str, knowledge_id: str, old_tier: KnowledgeTier, new_tier: KnowledgeTier, reason: str)</signature>
+      <path>src/jarvis/knowledge/audit.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All epistemic sovereignty components must have ≥90% test coverage. Unit tests for: tier assignment determinism, provenance vector immutability, dual-persona arbitration logic, trust decay calculations, usage policy enforcement. Integration tests for: full promotion workflow (K3→K2 with dual approval), conflict detection and freezing, BMAD read-only access verification.
+    </standards>
+    <locations>
+      <location>tests/unit/test_knowledge_tiers.py</location>
+      <location>tests/unit/test_provenance_ledger.py</location>
+      <location>tests/unit/test_dual_persona.py</location>
+      <location>tests/unit/test_trust_decay.py</location>
+      <location>tests/unit/test_usage_policy.py</location>
+      <location>tests/integration/test_knowledge_sovereignty_flow.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test tier assignment for all source types (telemetry→K0, analytics→K1, papers→K2, news→K3, scrape→K4). Verify tier immutability after creation.</idea>
+      <idea ac="2">Test provenance vector hashing. Verify append-only ledger rejects deletions/updates. Test lineage reconstruction from ledger.</idea>
+      <idea ac="3">Test dual-persona arbitration: both approve (promote), analyst rejects (freeze), adversary rejects (freeze), both reject (deny).</idea>
+      <idea ac="4">Test trust decay: K0 no decay, K4 fast decay. Test refresh on reuse. Test contradiction penalty.</idea>
+      <idea ac="5">Test usage policy: execution guidance rejects K3/K4, ideation allows all tiers. Test ReasoningEngine enforcement.</idea>
+      <idea ac="6">Test audit log events for promotion, decay, contradiction, freeze. Verify C-IDS integration.</idea>
+      <idea ac="7">Test BMAD can read all tiers, cannot promote K3→K2, cannot bypass usage policy.</idea>
+    </ideas>
+  </tests>
+</story-context>

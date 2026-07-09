@@ -1,0 +1,101 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-4</storyId>
+    <title>Constitutional Framework</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/9-4-constitutional-framework.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis architect ensuring long-term safety</asA>
+    <iWant>a constitution defining immutable principles that cannot be overridden by voting</iWant>
+    <soThat>core values are protected from majority tyranny and AI remains safe</soThat>
+    <tasks>
+      <task id="1">Create Constitution YAML schema with core values and red lines</task>
+      <task id="2">Define initial core values (safety, privacy, truth, sovereignty)</task>
+      <task id="3">Define immutable red lines (5 things Jarvis will NEVER do)</task>
+      <task id="4">Create ConstitutionalEnforcer class for proposal checking</task>
+      <task id="5">Implement auto-reject for red line violations</task>
+      <task id="6">Create AmendmentEngine with supermajority requirements</task>
+      <task id="7">Implement cooling period for amendments</task>
+      <task id="8">Connect to Story 8-8 DORMANT features for activation</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Constitution Model: YAML/JSON schema with core values, red lines, amendment rules</criterion>
+    <criterion id="AC2">Core Values: Safety, privacy, truth, sovereignty (defined)</criterion>
+    <criterion id="AC3">Red Lines: Actions Jarvis will NEVER take (immutable)</criterion>
+    <criterion id="AC4">API Endpoint: GET /api/governance/constitution returns full constitution</criterion>
+    <criterion id="AC5">Constitutional Check: Gate on all autonomous actions</criterion>
+    <criterion id="AC6">Violation Detection: Identify proposals that conflict with constitution</criterion>
+    <criterion id="AC7">Auto-Reject: Block proposals that violate red lines</criterion>
+    <criterion id="AC8">API Endpoint: POST /api/governance/constitution/check validates proposal</criterion>
+    <criterion id="AC9">Amendment Proposal: Special proposal type with higher bar</criterion>
+    <criterion id="AC10">Supermajority Requirement: 75% quorum, 80% approval</criterion>
+    <criterion id="AC11">Cooling Period: 7-day delay before enactment</criterion>
+    <criterion id="AC12">API Endpoint: POST /api/governance/constitution/amend proposes amendment</criterion>
+    <criterion id="AC13">Version Control: Track all constitutional changes</criterion>
+    <criterion id="AC14">Amendment Log: Record of all amendment attempts (passed/failed)</criterion>
+    <criterion id="AC15">Immutable Archive: Original constitution always preserved</criterion>
+    <criterion id="AC16">API Endpoint: GET /api/governance/constitution/history returns versions</criterion>
+    <criterion id="AC17">Gate All DORMANT Features: Connect to Story 8-8 epistemic layer</criterion>
+    <criterion id="AC18">Activate Autonomy: Only when constitutional framework is complete</criterion>
+    <criterion id="AC19">Human Override: Constitution cannot block human direct intervention</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-9-planning.md" title="Epic 9 Planning" section="9-4: Constitutional Framework" snippet="Define immutable principles. Constitution document with core values, red lines, amendment process."/>
+      <doc path="docs/sprints/stories/8-8-epistemic-autonomy-layer.md" title="Story 8-8" section="DORMANT" snippet="AC 13, 15, 19 activate when 9-4 complete."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/memory/governance_node.py" kind="governance" symbol="GovernanceGate" lines="55-120" reason="Connect constitutional enforcement to governance gate"/>
+      <file path="src/jarvis/governance/voting.py" kind="voting" symbol="VoteCalculator" lines="1-50" reason="Constitutional amendments use special voting rules"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pyyaml" version="^6.0"/>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Red lines are IMMUTABLE - cannot be amended by any vote</constraint>
+    <constraint>Constitutional amendments require 75% quorum + 80% approval</constraint>
+    <constraint>7-day cooling period before amendment enactment</constraint>
+    <constraint>Original constitution always preserved in immutable archive</constraint>
+    <constraint>Human direct intervention cannot be blocked (sovereignty)</constraint>
+    <constraint>This story ACTIVATES Story 8-8 DORMANT features when complete</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/constitution" kind="REST" signature="GET /api/governance/constitution -> Constitution" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/constitution/check" kind="REST" signature="POST /api/governance/constitution/check {proposal_id} -> ConstitutionalCheck" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/constitution/amend" kind="REST" signature="POST /api/governance/constitution/amend {section, change} -> AmendmentProposal" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/constitution/amendments" kind="REST" signature="GET /api/governance/constitution/amendments -> {amendments: List[AmendmentProposal]}" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/constitution/history" kind="REST" signature="GET /api/governance/constitution/history -> {versions: List[ConstitutionVersion]}" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Test red line violation detection. Test amendment supermajority. Test cooling period.</standards>
+    <locations>
+      <location>tests/unit/test_constitution.py</location>
+      <location>tests/unit/test_enforcer.py</location>
+      <location>tests/unit/test_amendment.py</location>
+      <location>tests/integration/test_constitution_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC3">Test all 5 red lines are defined and immutable</idea>
+      <idea acId="AC7">Test proposal violating red line is auto-rejected</idea>
+      <idea acId="AC10">Test amendment fails without 80% approval</idea>
+      <idea acId="AC11">Test amendment enforces 7-day cooling period</idea>
+      <idea acId="AC17">Test 8-8 DORMANT features activate after completion</idea>
+    </ideas>
+  </tests>
+</story-context>

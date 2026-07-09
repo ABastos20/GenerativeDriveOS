@@ -1,0 +1,53 @@
+{
+  "project": {
+    "name": "JARVIS System",
+    "environment": "development"
+  },
+  "research": {
+    "max_queries": 3,
+    "min_queries": 2,
+    "provider": "gemini",
+    "hourly_limit": 10,
+    "cost_cap_usd": 2.0,
+    "redis_url": null,
+    "gemini_tools": [
+      "mcp__MCP_DOCKER__fetch",
+      "mcp__MCP_DOCKER__browser_snapshot",
+      "mcp__MCP_DOCKER__browser_take_screenshot"
+    ]
+  },
+  "workspace": {
+    "root": "/workspace",
+    "private_dir": ".jarvis"
+  },
+  "query": {
+    "default_retriever": "semantic",
+    "default_weight": 0.7,
+    "default_strict_mode": false,
+    "enable_expansion": false,
+    "expansion_count": 2
+  },
+  "gap_analysis": {
+    "coverage_threshold": 0.6,
+    "recency_stale_days": 90,
+    "recency_sparse_days": 30,
+    "min_recency_results": 1,
+    "coherence_threshold": 0.35
+  },
+  "providers": [
+    {
+      "name": "openrouter",
+      "type": "free_tier",
+      "priority": 1,
+      "model": "openrouter/auto",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    {
+      "name": "together",
+      "type": "free_tier",
+      "priority": 2,
+      "model": "together/mixtral-8x7b",
+      "api_key_env": "TOGETHER_API_KEY"
+    }
+  ]
+}

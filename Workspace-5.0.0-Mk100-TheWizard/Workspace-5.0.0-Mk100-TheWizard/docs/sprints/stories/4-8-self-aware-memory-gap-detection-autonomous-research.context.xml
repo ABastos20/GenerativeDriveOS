@@ -1,0 +1,164 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.8</storyId>
+    <title>Self-Aware Memory Gap Detection &amp; Autonomous Research</title>
+    <status>in-progress</status>
+    <generatedAt>2025-12-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/4-8-self-aware-memory-gap-detection-autonomous-research.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>knowledge engineer</asA>
+    <iWant>Jarvis to autonomously detect gaps in its memory and proactively research to fill them</iWant>
+    <soThat>the system evolves from passive RAG retrieval to active knowledge-seeking intelligence</soThat>
+    <tasks>
+Task 1: Implement Gap Analysis Engine (Coverage/Recency/Coherence)  
+Task 2: Build Research Planning Interface (Gemini query generation + limits)  
+Task 3: Integrate MCP Tooling for Web Research (fetch/browser orchestration, quality scoring)  
+Task 4: Implement Critical Integration Layer (Claude conflict detection + synthesis)  
+Task 5: Build Temporal Chunk Manager (versioned chunks with provenance + migration)  
+Task 6: Add Research Mode to Query Path (CLI/API flags, gap analyzer hook, response formatting)  
+Task 7: Implement Rate Limiting &amp; Cost Caps (Redis-backed, configurable)  
+Task 8: Build Research Analytics &amp; Logging (Postgres schema, CLI/API dashboard)  
+Task 9-15: Web UI research controls, progress indicators, gap display, research summary, enhanced attribution  
+Task 16-18: Web UI error states, mobile responsiveness, accessibility/polish  
+Task 19: Documentation &amp; examples for research mode  
+Task 20: Integration testing &amp; validation (end-to-end gaps → research → updates)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Gap analysis: coverage score 0-1, recency classification (MISSING | SPARSE | STALE), coherence contradiction flag.  
+2. Research mode triggers when gaps exceed threshold; generates 2-5 web queries via Gemini, executes with MCP tools, cross-references and validates sources.  
+3. Critical integration compares old vs new knowledge, detects conflicts, synthesizes updates, and reports confidence deltas.  
+4. Temporal memory updates are versioned with source_type, verified_at (UTC), confidence, supersedes links, append-only history.  
+5. User transparency: response includes gap summary, research summary, confidence before/after, links to new sources, cost/provider metadata.  
+6. Logging &amp; analytics: research sessions logged to Postgres with gaps, queries, sources, updates, cost/usage, status.  
+7. Opt-in controls: CLI flag and API param to enable research (off by default) plus rate limiting and cost caps.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/VARIABLE-GROUNDING-SYSTEM.md</path>
+        <title>Variable Grounding System</title>
+        <section>Overview</section>
+        <snippet>Describes autonomous grounding with intent analysis, evidence tagging, and creative vs strict modes that can be reused for gap detection thresholds and response transparency.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sessions/2025-12-03-BREAKTHROUGH-SESSION.md</path>
+        <title>Breakthrough Session</title>
+        <section>Executive Summary / Philosophy Achieved</section>
+        <snippet>Captures the shift to balancing creativity with sources (“creative context”) and outlines stability fixes in chat grounding, relevant to keeping research responses grounded.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR1: RAG Query System (FR1.1–FR1.3)</section>
+        <snippet>Defines semantic, hybrid, and expanded retrieval with required source attribution—baseline behaviours that research mode must extend without breaking.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>FastAPI endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <lines>1-330</lines>
+        <reason>Main query path using intent analysis, grounding levels, and RAG; research mode flag and gap analyzer should integrate here.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>CLI command</kind>
+        <symbol>query()</symbol>
+        <lines>1-260</lines>
+        <reason>CLI entry for queries; will host --enable-research flag and surface gap/research metadata.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>retrieval core</kind>
+        <symbol>search_memory / keyword_search / hybrid_search / expanded_search</symbol>
+        <lines>1-320</lines>
+        <reason>Current retrieval logic and domain heuristics; gap analysis coverage/recency will consume these results.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/intent_analyzer.py</path>
+        <kind>intent classifier</kind>
+        <symbol>analyze_intent</symbol>
+        <lines>1-200</lines>
+        <reason>Existing pattern-based intent detection; patterns and outputs can seed gap categorization heuristics.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/confidence_scorer.py</path>
+        <kind>response annotator</kind>
+        <symbol>score_response_confidence</symbol>
+        <lines>1-200</lines>
+        <reason>Evidence tagging engine; extend to emit gap/research transparency and confidence deltas.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>ORM models</kind>
+        <symbol>Conversation, Message</symbol>
+        <lines>1-200</lines>
+        <reason>Message persistence and provenance fields; will expand with research logs/versioned chunks.</reason>
+      </artifact>
+      <artifact>
+        <path>alembic/</path>
+        <kind>migrations</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Houses Alembic migrations; needed for temporal chunk versioning and research logging tables.</reason>
+      </artifact>
+      <artifact>
+        <path>config/settings.example.yaml</path>
+        <kind>configuration</kind>
+        <symbol>query defaults</symbol>
+        <lines>N/A</lines>
+        <reason>Default retriever/grounding values; add research thresholds, rate limits, and cost caps here.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency>
+        <path>pyproject.toml</path>
+        <packages>fastapi, uvicorn, structlog, sqlalchemy, alembic, redis, qdrant-client, pydantic(+settings), typer, httpx, sentence-transformers, pytest/ruff/black/mypy</packages>
+        <reason>Core stack for API, storage, retrieval, logging, CLI, and testing; research tooling must stay within these ecosystems.</reason>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    Use structured logging (structlog) and keep functions typed (mypy: disallow_untyped_defs). Follow Black/ruff 100-char lines. Preserve timezone-aware UTC timestamps for verified_at and logs. Reuse shared retrieval/prompt paths (do not fork RAG logic). Configuration must conform to JSON-valid YAML in config/settings.yaml. Never fabricate citations; speculation must be labeled per grounding level.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/chat</name>
+      <kind>FastAPI</kind>
+      <signature>Body: ChatRequest(message, enable_research?, auto_grounding?, strict_mode?, k, retriever, expand, provider)</signature>
+      <path>src/jarvis/api/chat.py</path>
+    </interface>
+    <interface>
+      <name>jarvis query</name>
+      <kind>CLI</kind>
+      <signature>jarvis query "..." --enable-research --retriever [semantic|keyword|hybrid] --k INT --expand INT</signature>
+      <path>src/jarvis/cli/query.py</path>
+    </interface>
+    <interface>
+      <name>Research analytics</name>
+      <kind>CLI/API planned</kind>
+      <signature>jarvis analytics research-summary / GET /dashboard/api/research-stats</signature>
+      <path>docs/sprints/4-8-self-aware-memory-gap-detection-autonomous-research.md (planned)</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Pytest with strict markers, coverage enforced (`--cov=jarvis --cov-report=term-missing`), lint/type gates via ruff/black/mypy; observability requires structured logs with latency/provider metadata (per docs/test-design-system.md).</standards>
+    <locations>tests/unit/**/*, tests/integration/**/*, tests/cli/**/*, tests/api/**/*</locations>
+    <ideas>
+AC-1: Unit tests for Coverage/Recency/Coherence analyzers with edge scores and classification thresholds.  
+AC-2: Research planner tests enforcing query count limits and MCP execution mocks for fetch/browser flows.  
+AC-3/4: Integrator tests for conflict detection and confidence delta math plus versioned chunk supersedes handling.  
+AC-5/7: API/CLI integration tests toggling enable_research, verifying response transparency and rate/cost enforcement with Redis fakes.  
+AC-6: DB logging tests ensuring research sessions capture gaps, queries, sources, costs, and statuses; migrations round-trip.
+    </ideas>
+  </tests>
+</story-context>

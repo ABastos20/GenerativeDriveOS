@@ -1,0 +1,62 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-1</storyId>
+    <title>Sovereign Identity Transformation (Keycloak)</title>
+    <status>in-progress</status>
+    <generatedAt>2025-12-09</generatedAt>
+    <generator>Antigravity Manual Generation</generator>
+    <sourceStoryPath>docs/sprints/stories/11-1-sovereign-identity.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect and regulator</asA>
+    <iWant>identity to be managed by Keycloak (OIDC)</iWant>
+    <soThat>governance votes are legally attributable and audit trails are unforgeable</soThat>
+    <tasks>
+      <task id="1">Configure Keycloak Service in Docker</task>
+      <task id="2">Refactor DB Schema (Zero-PII Core)</task>
+      <task id="3">Implement OIDC/JWT Validation Middleware</task>
+      <task id="4">Bootstrap Users in Keycloak</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Keycloak Service: Running on port 8081 (Docker)</criterion>
+    <criterion id="AC2">Realm Persistence: jarvis-realm.json loaded on startup</criterion>
+    <criterion id="AC3">Zero-PII Core: governance_users renamed/mapped to governance_identities without PII</criterion>
+    <criterion id="AC4">Token Intake: API accepts Bearer tokens</criterion>
+    <criterion id="AC5">JWT Validation: Verify signature via JWKS from Keycloak</criterion>
+    <criterion id="AC6">Auto-Provisioning: Valid OIDC subjects get Observer role automatically</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-11-planning.md" title="Epic 11 Planning" section="Keycloak Mandate" snippet="Use Keycloak. Do NOT mock an IdP."/>
+    </docs>
+    <code>
+      <file path="docker-compose.yml" kind="infrastructure" symbol="keycloak" lines="" reason="Add Identity Provider Service"/>
+      <file path="src/jarvis/api/security.py" kind="middleware" symbol="get_current_identity" lines="" reason="Implement OIDC validation"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="python-jose" version="^3.3.0"/>
+        <package name="python-multipart" version="^0.0.6"/>
+      </python>
+      <docker>
+        <image name="quay.io/keycloak/keycloak" version="26.0"/>
+      </docker>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must use Keycloak (standard OIDC)</constraint>
+    <constraint>No PII in Jarvis Core Database</constraint>
+    <constraint>Backward compatibility for Test Users (Admin, etc.)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /realms/jarvis/.well-known/openid-configuration" kind="OIDC" signature="Discovery Doc" path="Keycloak"/>
+    <interface name="POST /api/governance/vote" kind="API" signature="Requires Authorization: Bearer" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+</story-context>

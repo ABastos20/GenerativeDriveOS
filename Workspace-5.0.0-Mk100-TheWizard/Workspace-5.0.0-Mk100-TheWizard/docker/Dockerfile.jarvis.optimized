@@ -1,0 +1,99 @@
+# syntax=docker/dockerfile:1.7
+#
+# HIGH-PERFORMANCE DOCKERFILE FOR RYZEN 7 9800X3D
+# Optimizations:
+# - BuildKit cache mounts for 5-10x faster rebuilds
+# - Multi-stage build for cleaner separation
+# - Performance libraries (uvloop, orjson)
+# - Parallel configuration
+#
+
+# ============================================================================
+# Stage 1: Base with Poetry
+# ============================================================================
+FROM python:3.13-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    POETRY_VERSION=1.8.3 \
+    POETRY_HOME=/opt/poetry \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_INSTALLER_MAX_WORKERS=8 \
+    PATH="/opt/poetry/bin:${PATH}"
+
+# Install system dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        git \
+        gosu \
+        libpq-dev \
+        netcat-openbsd \
+        pandoc \
+        w3m \
+        xdg-utils \
+        nodejs \
+        npm && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Poetry with pip cache
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install "poetry==${POETRY_VERSION}" "click==8.1.7"
+
+# ============================================================================
+# Stage 2: Python dependencies
+# ============================================================================
+FROM base AS python-deps
+
+WORKDIR /workspace
+
+COPY pyproject.toml poetry.lock* ./
+
+# Install dependencies with BuildKit cache (HUGE speedup on rebuilds!)
+RUN --mount=type=cache,target=/root/.cache/pypoetry \
+    --mount=type=cache,target=/root/.cache/pip \
+    poetry config installer.max-workers 8 && \
+    poetry install --with dev --no-interaction --no-ansi
+
+# ============================================================================
+# Stage 3: Final image
+# ============================================================================
+FROM base AS final
+
+WORKDIR /workspace
+
+# Copy Python environment from python-deps
+COPY --from=python-deps /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=python-deps /usr/local/bin /usr/local/bin
+
+# Install Node CLIs with npm cache
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli || true
+
+# Install LLM CLI tools with pip cache
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir \
+        anthropic-cli \
+        google-generativeai \
+        openai
+
+# Copy application scripts
+COPY docker/scripts/healthcheck.sh /usr/local/bin/jarvis-healthcheck
+COPY docker/scripts/entrypoint.sh /usr/local/bin/jarvis-entrypoint
+COPY docker/scripts/run-jarvis-services.sh /usr/local/bin/jarvis-run-services
+COPY scripts/setup/setup_cli_wrappers.sh /tmp/setup_cli_wrappers.sh
+
+RUN chmod +x /usr/local/bin/jarvis-healthcheck \
+             /usr/local/bin/jarvis-entrypoint \
+             /usr/local/bin/jarvis-run-services && \
+    bash /tmp/setup_cli_wrappers.sh && \
+    rm /tmp/setup_cli_wrappers.sh
+
+ENTRYPOINT ["/usr/local/bin/jarvis-entrypoint"]
+CMD ["bash", "-c", "tail -f /dev/null"]

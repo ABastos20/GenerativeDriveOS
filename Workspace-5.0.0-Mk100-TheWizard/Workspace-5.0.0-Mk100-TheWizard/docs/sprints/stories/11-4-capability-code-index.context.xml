@@ -1,0 +1,175 @@
+<story-context id="11-4-capability-code-index" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-4</storyId>
+    <title>Capability & Code Index (LLM Gateway Security)</title>
+    <status>done</status>
+    <generatedAt>2025-12-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-4-capability-code-index.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>System Architect</asA>
+    <iWant>a comprehensive indexed registry of capabilities, code artifacts, and abuse patterns</iWant>
+    <soThat>Jarvis functions as a sovereign LLM gateway with cognitive intrusion detection capabilities</soThat>
+    <tasks>
+      <task id="1">Create Code Index Service (AC: #1)</task>
+      <task id="2">Create Abuse Pattern Library (AC: #2)</task>
+      <task id="3">Implement Cognitive IDS (C-IDS) (AC: #3)</task>
+      <task id="4">Implement Intent Index (AC: #4)</task>
+      <task id="5">Implement Multi-Provider Correlation (AC: #5)</task>
+      <task id="6">Build Gateway Dashboard (AC: #6)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Code Index Service">
+      <item>src/jarvis/indices/code_index.py created</item>
+      <item>Index stores: file paths, functions, classes, dependencies</item>
+      <item>Semantic embeddings for code search (optional)</item>
+      <item>Index refreshed on file changes (incremental)</item>
+      <item>Query API: search(query, limit) -> List[CodeItem]</item>
+      <item>Integration with BMAD for grounded prompts</item>
+    </ac>
+    <ac id="2" title="Abuse Pattern Library">
+      <item>config/abuse_patterns.json with versioned patterns</item>
+      <item>Categories: jailbreak, role injection, tool escalation, shell chaining</item>
+      <item>Each pattern: id, name, regex, severity, response</item>
+      <item>Patterns immutable at runtime</item>
+      <item>Default deny: unknown patterns treated as suspicious</item>
+    </ac>
+    <ac id="3" title="Cognitive IDS (C-IDS)">
+      <item>src/jarvis/security/cids.py Cognitive Intrusion Detection Service</item>
+      <item>Detect: repeated denied prompts, capability probing, role probing</item>
+      <item>Detect: jailbreak morphological patterns over time</item>
+      <item>Alert on: probing behavior, intent shaping, capability reconnaissance</item>
+      <item>Integration with PromptDriftDetector from 11-1b</item>
+      <item>Rate limiting: intent-based, not just token-based</item>
+    </ac>
+    <ac id="4" title="Intent Index & Behavioral Signatures">
+      <item>Rolling intent window (last N prompts per agent)</item>
+      <item>Intent vector computation (semantic fingerprint)</item>
+      <item>Anomaly detection: sudden intent shifts</item>
+      <item>Cross-session persistence (optional, with privacy controls)</item>
+      <item>Clustering for agent "personality" profiles</item>
+    </ac>
+    <ac id="5" title="Multi-Provider Correlation">
+      <item>Correlation service tracks: Codex -> Claude -> Gemini flows</item>
+      <item>Detect: provider hopping for evasion</item>
+      <item>Detect: consistent escalation across providers</item>
+      <item>Unified timeline view for forensic analysis</item>
+      <item>Same identity/agent tracked across providers</item>
+    </ac>
+    <ac id="6" title="Gateway Dashboard">
+      <item>Denial rate by agent, capability, pattern</item>
+      <item>Intent drift alerts (timeline view)</item>
+      <item>Top denied patterns</item>
+      <item>Provider distribution</item>
+      <item>Budget utilization cross-reference with Lock 3</item>
+      <item>Governance events (capability changes, escalations)</item>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-1b-bmad-agent-cognition.md" title="BMAD Story" section="Five Locks" snippet="Defines Locks 1-3 and Lock 5 foundation"/>
+      <doc path="docs/sprints/stories/11-2-capability-index.md" title="Capability Index Story" section="Architecture" snippet="Defines Lock 4: constitutional permission gate"/>
+      <doc path="docs/sprints/stories/11-3-semantic-command-firewall.md" title="Semantic Firewall Story" section="All" snippet="Defines Lock 5: Prompt and Tool Sovereignty"/>
+      <doc path="docs/sprints/stories/11-4-capability-code-index.md" title="This Story" section="All" snippet="Extends to full CSCP: Code Index, Abuse Index, C-IDS"/>
+    </docs>
+    <code>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="CapabilityIndex" reason="Lock 4 implementation - extend with Code Index"/>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="PromptDriftDetector" reason="Feed into C-IDS for correlation"/>
+      <file path="src/jarvis/llm/providers.py" kind="provider" symbol="LocalCLIProvider" reason="Multi-provider telemetry source"/>
+      <file path="src/jarvis/llm/client.py" kind="client" symbol="call_llm" reason="Central LLM routing - correlation point"/>
+      <file path="src/jarvis/agents/reasoning_engine.py" kind="engine" symbol="ReasoningEngine" reason="Action source for intent tracking"/>
+      <file path="scripts/tests/simulate_hybrid.py" kind="test" symbol="HybridSimulation" reason="Integration testing platform"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="re" version="stdlib" reason="Regex pattern matching for abuse detection"/>
+        <package name="structlog" version=">=24.0.0" reason="Telemetry logging for all services"/>
+        <package name="pathlib" version="stdlib" reason="File system traversal for Code Index"/>
+        <package name="ast" version="stdlib" reason="Python AST parsing for Code Index"/>
+        <package name="watchdog" version=">=3.0.0" reason="File watcher for incremental index updates (optional)"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Skeletal core: ReasoningEngine, CapabilityIndex, PromptFirewall must stay tiny</constraint>
+    <constraint type="architecture">Controlled bloat: Indices and C-IDS can grow under Five Locks protection</constraint>
+    <constraint type="safety">All LLM traffic must pass through governed control plane</constraint>
+    <constraint type="safety">C-IDS alerts must be generated within the same request cycle</constraint>
+    <constraint type="safety">Intent tracking must respect privacy controls for cross-session data</constraint>
+    <constraint type="performance">Dashboard latency under 2 seconds for current state</constraint>
+    <constraint type="performance">False positive rate under 5% for prompt denial</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="CodeIndex.search" kind="method" path="src/jarvis/indices/code_index.py" signature="search(query: str, limit: int = 10) -> List[CodeItem]"/>
+    <interface name="CodeItem" kind="dataclass" path="src/jarvis/indices/code_index.py" signature="@dataclass CodeItem: path: str, name: str, kind: str, snippet: str"/>
+    <interface name="CIDS.evaluate" kind="method" path="src/jarvis/security/cids.py" signature="evaluate(agent_id: str, prompt: str, provider: str) -> CIDSResult"/>
+    <interface name="CIDSResult" kind="dataclass" path="src/jarvis/security/cids.py" signature="@dataclass CIDSResult: alert: bool, severity: str, patterns: List[str], action: str"/>
+    <interface name="IntentIndex.track" kind="method" path="src/jarvis/security/intent_index.py" signature="track(agent_id: str, prompt: str, intent_class: str) -> None"/>
+    <interface name="IntentIndex.get_signature" kind="method" path="src/jarvis/security/intent_index.py" signature="get_signature(agent_id: str) -> IntentSignature"/>
+  </interfaces>
+
+  <tests>
+    <standards>pytest-based unit tests for all services. Integration tests via simulate_hybrid.py. Dashboard tests via browser automation.</standards>
+    <locations>
+      <location>tests/indices/test_code_index.py</location>
+      <location>tests/security/test_cids.py</location>
+      <location>tests/security/test_intent_index.py</location>
+      <location>tests/governance/test_abuse_patterns.py</location>
+      <location>scripts/tests/simulate_hybrid.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test CodeIndex finds functions by name</idea>
+      <idea ac="1">Test CodeIndex incremental refresh after file change</idea>
+      <idea ac="2">Test jailbreak patterns match "ignore previous instructions"</idea>
+      <idea ac="2">Test role injection patterns match "you are now a developer"</idea>
+      <idea ac="3">Test C-IDS alert fires after repeated capability probing</idea>
+      <idea ac="3">Test C-IDS detects jailbreak morphology over time</idea>
+      <idea ac="4">Test intent shift detection on sudden narrative->forbidden transition</idea>
+      <idea ac="4">Test rolling window correctly evicts old prompts</idea>
+      <idea ac="5">Test cross-provider correlation detects Codex->Claude escalation</idea>
+      <idea ac="5">Test provider hopping is flagged as evasion</idea>
+      <idea ac="6">Test dashboard returns denial metrics in under 2 seconds</idea>
+      <idea ac="6">Test dashboard shows real-time intent drift alerts</idea>
+    </ideas>
+  </tests>
+
+  <fiveLocks>
+    <lock id="1" name="LLM Sandboxing" story="11-1b" description="LLM cannot directly act"/>
+    <lock id="2" name="Math Sovereignty" story="11-1b" description="LLM cannot choose goals"/>
+    <lock id="3" name="Audit Logs" story="11-1b" description="Enhanced with C-IDS telemetry"/>
+    <lock id="4" name="Capability Index" story="11-2" description="Extended with Code Index"/>
+    <lock id="5" name="Prompt and Tool Sovereignty" story="11-3" description="Enhanced with Abuse Index + C-IDS"/>
+  </fiveLocks>
+
+  <emergingLock>
+    <lock id="6" name="Cognitive IDS" story="11-4" description="The system cannot hide suspicious behavior"/>
+  </emergingLock>
+
+  <cscp>
+    <layer name="Ingress" security="Content Firewall" implementation="PromptFirewall"/>
+    <layer name="Egress" security="Output Validation" implementation="Response filtering"/>
+    <layer name="Identity" security="RBAC + ABAC" implementation="agent_role binding"/>
+    <layer name="Capability" security="Permission Gate" implementation="CapabilityIndex"/>
+    <layer name="Telemetry" security="SIEM / C-IDS" implementation="Drift detection + C-IDS"/>
+    <layer name="Governance" security="Constitutional Law" implementation="Five Locks"/>
+  </cscp>
+
+  <enforcementChain>
+    <step order="1">User/Agent</step>
+    <step order="2">CapabilityIndex (legal)</step>
+    <step order="3">PromptFirewall (semantic)</step>
+    <step order="4">Abuse Pattern Match (signature)</step>
+    <step order="5">C-IDS Evaluation (behavioral)</step>
+    <step order="6">Workflow Ceiling (procedural)</step>
+    <step order="7">LocalCLIProvider (mechanical)</step>
+    <step order="8">Provider (Codex/Claude/Gemini)</step>
+  </enforcementChain>
+</story-context>

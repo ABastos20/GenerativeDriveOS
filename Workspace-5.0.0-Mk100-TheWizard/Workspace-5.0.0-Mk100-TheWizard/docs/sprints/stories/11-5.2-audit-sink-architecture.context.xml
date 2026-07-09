@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <metadata>
+    <story-id>11-5.2</story-id>
+    <title>Epistemic Audit Sink Architecture</title>
+    <epic>11 – Mk100 "The Wizard"</epic>
+    <parent>11-5 (Knowledge Sovereignty)</parent>
+    <priority>HIGH (Foundation)</priority>
+    <type>Tech Debt Resolution</type>
+    <generated>2025-12-10T19:28:00Z</generated>
+  </metadata>
+
+  <user-story>
+    <as-a>system architect</as-a>
+    <i-want>a pluggable sink architecture for EpistemicAuditLog</i-want>
+    <so-that>audit events can be routed to multiple backends without changing the semantic core</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <ac id="1" title="Sink Protocol Definition">
+      <description>Python Protocol for duck-typing audit sinks</description>
+      <implementation>
+        <item>Create src/jarvis/knowledge/audit_sinks.py</item>
+        <item>Define EpistemicAuditSink Protocol with handle_event method</item>
+        <item>Runtime checkable for duck-typing</item>
+      </implementation>
+    </ac>
+    <ac id="2" title="InMemorySink Implementation">
+      <description>Extract current in-memory storage into dedicated sink class</description>
+      <implementation>
+        <item>Move storage logic from EpistemicAuditLog to InMemorySink</item>
+        <item>Maintain all indexes for query support</item>
+        <item>100% backward compatible</item>
+      </implementation>
+    </ac>
+    <ac id="3" title="EpistemicAuditLog Refactor">
+      <description>Fan-out to all configured sinks</description>
+      <implementation>
+        <item>Accept sinks parameter in constructor</item>
+        <item>Default to [InMemorySink()] if none provided</item>
+        <item>Fan-out to all sinks with error isolation</item>
+      </implementation>
+    </ac>
+    <ac id="4" title="Backward Compatibility">
+      <description>All 30 existing audit log tests pass unchanged</description>
+    </ac>
+    <ac id="5" title="Error Isolation">
+      <description>One sink failure does not crash pipeline</description>
+    </ac>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1">Create Sink Protocol (AC: #1)</task>
+    <task id="2">Implement InMemorySink (AC: #2)</task>
+    <task id="3">Refactor EpistemicAuditLog (AC: #3)</task>
+    <task id="4">Backward Compatibility Tests (AC: #4)</task>
+    <task id="5">Error Isolation Tests (AC: #5)</task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-5-knowledge-sovereignty.md" title="Parent Story" section="AC6: Epistemic Audit Log">
+        Defines the audit log semantic model and event types
+      </doc>
+    </docs>
+    <code>
+      <file path="src/jarvis/knowledge/audit.py" kind="service" symbol="EpistemicAuditLog" lines="213-563" reason="Core class to refactor with sink injection"/>
+      <file path="src/jarvis/knowledge/audit.py" kind="enum" symbol="EpistemicEventType" reason="Event types that sinks must handle"/>
+      <file path="src/jarvis/knowledge/audit.py" kind="dataclass" symbol="EpistemicEvent" reason="Event structure passed to sinks"/>
+      <file path="tests/unit/test_audit.py" kind="test" reason="30 existing tests that must continue passing"/>
+    </code>
+    <dependencies>
+      <python>
+        <package>structlog</package>
+        <package>pydantic</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="EpistemicAuditSink" kind="protocol">
+      <signature>
+class EpistemicAuditSink(Protocol):
+    def handle_event(self, event: EpistemicEvent) -> None: ...
+      </signature>
+      <path>src/jarvis/knowledge/audit_sinks.py (NEW)</path>
+    </interface>
+    <interface name="InMemorySink" kind="class">
+      <signature>
+class InMemorySink:
+    events: list[EpistemicEvent]
+    def handle_event(self, event: EpistemicEvent) -> None: ...
+      </signature>
+      <path>src/jarvis/knowledge/audit_sinks.py (NEW)</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="compatibility">All 30 existing test_audit.py tests must pass</constraint>
+    <constraint type="architecture">Keep EpistemicAuditLog as semantic core</constraint>
+    <constraint type="resilience">Sink failure must not crash caller</constraint>
+    <constraint type="default">Default behavior identical to pre-refactor</constraint>
+  </constraints>
+
+  <tests>
+    <standards>pytest framework, 30 existing tests as baseline</standards>
+    <locations>tests/unit/test_audit.py, tests/unit/test_audit_sinks.py (NEW)</locations>
+    <ideas>
+      <idea ac="1">Test Protocol is runtime_checkable</idea>
+      <idea ac="2">Test InMemorySink indexes events correctly</idea>
+      <idea ac="3">Test multi-sink fan-out works</idea>
+      <idea ac="4">Run all 30 existing tests</idea>
+      <idea ac="5">Test one sink fails, others continue</idea>
+    </ideas>
+  </tests>
+</story-context>

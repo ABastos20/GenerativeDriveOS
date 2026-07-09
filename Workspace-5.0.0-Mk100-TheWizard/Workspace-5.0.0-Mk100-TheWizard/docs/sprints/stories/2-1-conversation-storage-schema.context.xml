@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>2-1-conversation-storage-schema</story-id>
+    <epic>Epic 2 - Persistent Memory Backbone</epic>
+    <title>Conversation Storage Schema</title>
+    <status>ready-for-dev</status>
+    <generated-at>2025-11-17T15:30:00Z</generated-at>
+  </metadata>
+
+  <story-details>
+    <user-story>
+      As a memory engineer,
+      I want normalized PostgreSQL tables for conversations, turns, costs, and personas,
+      So that every interaction is queryable with metadata.
+    </user-story>
+
+    <acceptance-criteria>
+      <criterion>Given migrations run via Alembic</criterion>
+      <criterion>When a new conversation occurs</criterion>
+      <criterion>Then the system stores user prompts, agent responses, timestamps (UTC), persona IDs, and cost breakdown</criterion>
+      <criterion>And indices support filtering by persona, topic, and timeframe</criterion>
+    </acceptance-criteria>
+
+    <prerequisites>
+      <item>Epic 1 complete (Docker stack, workspace, config, CLI diagnostics)</item>
+      <item>PostgreSQL 18.1 container running</item>
+      <item>Alembic migration framework available in pyproject.toml</item>
+    </prerequisites>
+  </story-details>
+
+  <architecture-reference>
+    <source>docs/architecture.md</source>
+
+    <key-decisions>
+      <decision id="ADR-007">
+        <title>UTC+0 (Lisbon) for All Timestamps</title>
+        <impact>Store all timestamps in UTC (Lisbon timezone = UTC+0), convert only at display</impact>
+        <rationale>UTC eliminates DST bugs, database compatibility with PostgreSQL TIMESTAMP WITH TIME ZONE</rationale>
+      </decision>
+
+      <decision id="ADR-002">
+        <title>Python 3.13 for LTS Support</title>
+        <impact>Use Python 3.13 with modern type hints throughout</impact>
+        <implementation>from __future__ import annotations in all modules</implementation>
+      </decision>
+    </key-decisions>
+
+    <technology-stack>
+      <database>
+        <postgresql version="18.1">
+          <purpose>Conversations storage, LLM provider usage tracking, agent persona configurations, user preferences, cost summaries</purpose>
+          <docker-image>postgres:18.1</docker-image>
+        </postgresql>
+      </database>
+
+      <orm>
+        <sqlalchemy version="^2.0.0">
+          <features>Connection pooling (5-10 connections), session management, ORM models</features>
+        </sqlalchemy>
+      </orm>
+
+      <migrations>
+        <alembic version="^1.13.0">
+          <purpose>Database schema versioning and migration management</purpose>
+        </alembic>
+      </migrations>
+    </technology-stack>
+
+    <postgresql-schema>
+      <table name="conversations">
+        <description>Top-level conversation container</description>
+        <columns>
+          <column name="id" type="UUID PRIMARY KEY DEFAULT gen_random_uuid()" />
+          <column name="user_id" type="VARCHAR(255)" note="Future: multi-user support" />
+          <column name="created_at" type="TIMESTAMP WITH TIME ZONE DEFAULT NOW()" />
+          <column name="updated_at" type="TIMESTAMP WITH TIME ZONE DEFAULT NOW()" />
+        </columns>
+      </table>
+
+      <table name="messages">
+        <description>Individual messages within conversations</description>
+        <columns>
+          <column name="id" type="UUID PRIMARY KEY DEFAULT gen_random_uuid()" />
+          <column name="conversation_id" type="UUID REFERENCES conversations(id) ON DELETE CASCADE" />
+          <column name="role" type="VARCHAR(50) NOT NULL" note="user | assistant | system" />
+          <column name="content" type="TEXT NOT NULL" />
+          <column name="agent_persona" type="VARCHAR(100)" note="Which Rick responded (if applicable)" />
+          <column name="cost_usd" type="DECIMAL(10, 6)" />
+          <column name="provider" type="VARCHAR(100)" />
+          <column name="model" type="VARCHAR(100)" />
+          <column name="token_count" type="INTEGER" />
+          <column name="created_at" type="TIMESTAMP WITH TIME ZONE DEFAULT NOW()" />
+        </columns>
+        <indices>
+          <index name="idx_messages_conversation" columns="conversation_id" />
+          <index name="idx_messages_created_at" columns="created_at DESC" />
+        </indices>
+      </table>
+
+      <table name="llm_providers">
+        <description>LLM provider registry for cost-first routing</description>
+        <columns>
+          <column name="id" type="SERIAL PRIMARY KEY" />
+          <column name="name" type="VARCHAR(100) UNIQUE NOT NULL" note="openrouter, together_ai, etc." />
+          <column name="type" type="VARCHAR(50) NOT NULL" note="free_tier | paid" />
+          <column name="priority" type="INTEGER DEFAULT 100" note="Lower = higher priority" />
+          <column name="quota_limit" type="BIGINT" note="Tokens per month (if known)" />
+          <column name="tokens_used" type="BIGINT DEFAULT 0" />
+          <column name="last_reset" type="TIMESTAMP WITH TIME ZONE" />
+          <column name="api_key_env" type="VARCHAR(100)" note="ENV variable name" />
+          <column name="is_active" type="BOOLEAN DEFAULT TRUE" />
+        </columns>
+      </table>
+
+      <table name="llm_usage_log">
+        <description>Detailed LLM API call tracking for cost analysis</description>
+        <columns>
+          <column name="id" type="BIGSERIAL PRIMARY KEY" />
+          <column name="provider_id" type="INTEGER REFERENCES llm_providers(id)" />
+          <column name="message_id" type="UUID REFERENCES messages(id)" />
+          <column name="model" type="VARCHAR(100)" />
+          <column name="tokens_input" type="INTEGER" />
+          <column name="tokens_output" type="INTEGER" />
+          <column name="cost_usd" type="DECIMAL(10, 6)" />
+          <column name="created_at" type="TIMESTAMP WITH TIME ZONE DEFAULT NOW()" />
+        </columns>
+        <indices>
+          <index name="idx_usage_log_provider" columns="provider_id" />
+          <index name="idx_usage_log_created_at" columns="created_at DESC" />
+        </indices>
+      </table>
+
+      <table name="agent_personas">
+        <description>Council of Ricks persona configurations</description>
+        <columns>
+          <column name="id" type="SERIAL PRIMARY KEY" />
+          <column name="name" type="VARCHAR(100) UNIQUE NOT NULL" note="Rickiest Rick, etc." />
+          <column name="system_prompt" type="TEXT NOT NULL" />
+          <column name="weight" type="DECIMAL(3, 2)" note="0.40, 0.20, 0.10, 0.30" />
+          <column name="is_active" type="BOOLEAN DEFAULT TRUE" />
+          <column name="created_at" type="TIMESTAMP WITH TIME ZONE DEFAULT NOW()" />
+        </columns>
+      </table>
+    </postgresql-schema>
+  </architecture-reference>
+
+  <epic-context>
+    <source>docs/epics.md</source>
+    <epic-title>Epic 2: Persistent Memory Backbone</epic-title>
+    <epic-description>
+      Implement PostgreSQL schemas, ingestion workflows, and Qdrant collections so knowledge persists and is searchable for decades.
+    </epic-description>
+
+    <related-stories>
+      <story id="2-1" status="current">Conversation Storage Schema (This Story)</story>
+      <story id="2-2" status="pending">Document Ingestion Pipeline</story>
+      <story id="2-3" status="pending">Qdrant Collection Initialization</story>
+      <story id="2-4" status="pending">Memory Retrieval Filters &amp; API</story>
+      <story id="2-5" status="pending">Scheduled Memory Compilation</story>
+    </related-stories>
+  </epic-context>
+
+  <functional-requirements>
+    <source>docs/prd.md</source>
+
+    <fr id="FR4.1">
+      <title>Conversation Storage</title>
+      <description>
+        Store all user queries and JARVIS responses in PostgreSQL.
+        Include metadata: timestamp, agent persona, cost, sources used.
+        Support conversation threading and context maintenance.
+      </description>
+    </fr>
+
+    <fr id="FR3.1">
+      <title>Provider Configuration</title>
+      <description>
+        Define LLM providers with type (free_tier/paid), API key, priority.
+        Store provider usage stats in database (tokens used, quota remaining).
+        Update usage stats after each API call.
+      </description>
+    </fr>
+
+    <fr id="FR2.1">
+      <title>Agent Persona Management</title>
+      <description>
+        Define agent personas with name, system prompt, weight.
+        Store personas in configuration (YAML + database).
+        Support dynamic persona addition/removal via CLI/API.
+      </description>
+    </fr>
+  </functional-requirements>
+
+  <existing-codebase>
+    <module path="src/jarvis/config/settings.py">
+      <description>Configuration management using dataclasses and environment variables</description>
+      <patterns>
+        <pattern>Dataclass-based configuration models</pattern>
+        <pattern>Environment variable loading via custom _load_dotenv</pattern>
+        <pattern>Type hints with from __future__ import annotations</pattern>
+        <pattern>Separation of concerns (models, loading helpers, public API)</pattern>
+      </patterns>
+      <reusable-patterns>
+        <item>ProviderConfig dataclass structure can inform llm_providers table design</item>
+        <item>Settings.from_dict pattern for database model constructors</item>
+        <item>Environment variable access patterns for database credentials</item>
+      </reusable-patterns>
+    </module>
+
+    <module path="src/jarvis/workspace/workspace.py">
+      <description>Workspace abstraction with path validation and file operations</description>
+      <patterns>
+        <pattern>Dataclass with __post_init__ for initialization logic</pattern>
+        <pattern>Path validation and security (path traversal protection)</pattern>
+        <pattern>Optional type hints with proper None handling</pattern>
+        <pattern>Comprehensive error messages (ValueError with context)</pattern>
+      </patterns>
+      <reusable-patterns>
+        <item>Path normalization and validation patterns for file paths in database</item>
+        <item>Security-first design (validate before use)</item>
+        <item>Logging patterns using structured logging</item>
+      </reusable-patterns>
+    </module>
+
+    <module path="docker/docker-compose.yml">
+      <description>Multi-container orchestration</description>
+      <postgres-config>
+        <image>postgres:18.1</image>
+        <container-name>jarvis-postgres</container-name>
+        <environment>
+          <variable name="POSTGRES_DB">jarvis</variable>
+          <variable name="POSTGRES_USER">jarvis</variable>
+          <variable name="POSTGRES_PASSWORD">${POSTGRES_PASSWORD}</variable>
+        </environment>
+        <healthcheck>
+          <test>pg_isready -U jarvis</test>
+          <interval>10s</interval>
+          <timeout>5s</timeout>
+          <retries>5</retries>
+        </healthcheck>
+        <network>jarvis-network</network>
+      </postgres-config>
+    </module>
+
+    <module path="pyproject.toml">
+      <dependencies>
+        <dependency name="sqlalchemy" version="^2.0.0" purpose="ORM for PostgreSQL" />
+        <dependency name="alembic" version="^1.13.0" purpose="Database migrations" />
+        <dependency name="psycopg2-binary" version="^2.9.9" purpose="PostgreSQL adapter" />
+        <dependency name="pydantic" version="^2.9.0" purpose="Data validation" />
+      </dependencies>
+    </module>
+  </existing-codebase>
+
+  <implementation-guidance>
+    <step number="1">
+      <title>Initialize Alembic</title>
+      <commands>
+        <command>alembic init alembic</command>
+        <command>Edit alembic.ini to point to PostgreSQL connection string</command>
+        <command>Edit alembic/env.py to import SQLAlchemy models</command>
+      </commands>
+      <configuration>
+        <connection-string>postgresql://jarvis:${POSTGRES_PASSWORD}@postgres:5432/jarvis</connection-string>
+        <note>Use environment variable for password, container name 'postgres' for host</note>
+      </configuration>
+    </step>
+
+    <step number="2">
+      <title>Create SQLAlchemy Models</title>
+      <file>src/jarvis/database/models.py</file>
+      <requirements>
+        <item>Use from __future__ import annotations</item>
+        <item>Define declarative base: Base = declarative_base()</item>
+        <item>Create 5 model classes: Conversation, Message, LLMProvider, LLMUsageLog, AgentPersona</item>
+        <item>Use proper SQLAlchemy types (UUID, String, Text, Integer, Numeric, DateTime, Boolean)</item>
+        <item>Define relationships (messages -> conversation, usage_log -> provider and message)</item>
+        <item>Add __repr__ methods for debugging</item>
+      </requirements>
+    </step>
+
+    <step number="3">
+      <title>Create Database Connection Module</title>
+      <file>src/jarvis/database/postgres.py</file>
+      <requirements>
+        <item>Create SQLAlchemy engine with connection pooling</item>
+        <item>Session factory using sessionmaker</item>
+        <item>Context manager for session management (get_session() -> Session)</item>
+        <item>Environment variable configuration for connection string</item>
+        <item>Error handling with custom exceptions (DatabaseError)</item>
+      </requirements>
+      <connection-pooling>
+        <pool-size>5</pool-size>
+        <max-overflow>10</max-overflow>
+        <pool-pre-ping>true</pool-pre-ping>
+      </connection-pooling>
+    </step>
+
+    <step number="4">
+      <title>Create Alembic Migration</title>
+      <commands>
+        <command>alembic revision --autogenerate -m "create conversation storage schema"</command>
+        <command>Review generated migration file</command>
+        <command>Add manual adjustments if needed (indices, constraints)</command>
+        <command>alembic upgrade head</command>
+      </commands>
+    </step>
+
+    <step number="5">
+      <title>Create Unit Tests</title>
+      <file>tests/unit/database/test_models.py</file>
+      <test-cases>
+        <case>Test model instantiation and validation</case>
+        <case>Test UTC timestamp handling (timezone.utc)</case>
+        <case>Test relationships (conversation.messages, message.usage_logs)</case>
+        <case>Test constraints (unique names, foreign keys)</case>
+      </test-cases>
+    </step>
+
+    <step number="6">
+      <title>Create Integration Tests</title>
+      <file>tests/integration/database/test_postgres_integration.py</file>
+      <test-cases>
+        <case>Test database connection via Docker stack</case>
+        <case>Test CRUD operations (create conversation, add messages)</case>
+        <case>Test queries with filters (by persona, time range)</case>
+        <case>Test indices performance (verify query plans)</case>
+      </test-cases>
+      <fixtures>
+        <fixture>pytest-docker for Docker Compose stack management</fixture>
+        <fixture>Database session fixture with transaction rollback</fixture>
+      </fixtures>
+    </step>
+
+    <step number="7">
+      <title>Documentation</title>
+      <files>
+        <file>docs/database-schema.md - Schema documentation with ER diagrams</file>
+        <file>README.md - Update with database setup instructions</file>
+        <file>Story file - Add implementation notes</file>
+      </files>
+    </step>
+  </implementation-guidance>
+
+  <coding-patterns>
+    <pattern name="Type Hints">
+      <description>Use from __future__ import annotations in all modules</description>
+      <example>
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, Text, Integer, Numeric, DateTime, Boolean, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+
+Base = declarative_base()
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    user_id = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+    def __repr__(self) -> str:
+        return f"&lt;Conversation(id={self.id}, created_at={self.created_at})&gt;"
+      </example>
+    </pattern>
+
+    <pattern name="Error Handling">
+      <description>Use custom exception classes with descriptive messages</description>
+      <example>
+class DatabaseError(Exception):
+    """Base exception for database operations"""
+    pass
+
+class ConnectionError(DatabaseError):
+    """Database connection failed"""
+    pass
+
+def get_session() -> Session:
+    try:
+        session = SessionLocal()
+        return session
+    except SQLAlchemyError as e:
+        raise ConnectionError(f"Failed to create database session: {e}") from e
+      </example>
+    </pattern>
+
+    <pattern name="Logging">
+      <description>Use structlog for structured JSON logging</description>
+      <example>
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+def create_conversation(user_id: str) -> Conversation:
+    logger.info(
+        "Creating conversation",
+        user_id=user_id,
+        timestamp=datetime.now(timezone.utc).isoformat()
+    )
+    # ... implementation
+      </example>
+    </pattern>
+
+    <pattern name="Security">
+      <description>Use parameterized queries via SQLAlchemy ORM, never raw SQL</description>
+      <example>
+# ✅ Good: Parameterized via ORM
+messages = session.query(Message).filter(
+    Message.conversation_id == conversation_id,
+    Message.created_at >= since_date
+).all()
+
+# ❌ Bad: Raw SQL with string interpolation
+# query = f"SELECT * FROM messages WHERE conversation_id = '{conversation_id}'"
+      </example>
+    </pattern>
+  </coding-patterns>
+
+  <testing-strategy>
+    <unit-tests>
+      <framework>unittest (per Epic 1 precedent)</framework>
+      <coverage-target>100% for model definitions</coverage-target>
+      <test-cases>
+        <case>Model instantiation with valid data</case>
+        <case>Model validation (required fields, data types)</case>
+        <case>Relationship definitions (lazy loading, cascade)</case>
+        <case>UTC timestamp handling</case>
+      </test-cases>
+    </unit-tests>
+
+    <integration-tests>
+      <framework>pytest with pytest-docker</framework>
+      <prerequisites>Docker stack running (postgres service)</prerequisites>
+      <test-cases>
+        <case>Database connection establishment</case>
+        <case>Create conversation and messages</case>
+        <case>Query with filters (persona, time range)</case>
+        <case>Test cascade deletes (delete conversation -> messages deleted)</case>
+        <case>Index performance (explain query plans)</case>
+      </test-cases>
+    </integration-tests>
+  </testing-strategy>
+
+  <security-considerations>
+    <item priority="critical">Database credentials from environment variables only (.env file, not committed)</item>
+    <item priority="critical">Use SQLAlchemy ORM for all queries (prevents SQL injection)</item>
+    <item priority="high">Validate all input data before database operations</item>
+    <item priority="high">Use connection pooling to prevent connection exhaustion</item>
+    <item priority="medium">Log all database errors without exposing sensitive data</item>
+  </security-considerations>
+
+  <performance-considerations>
+    <item>Indices on foreign keys (conversation_id, provider_id, message_id)</item>
+    <item>Indices on timestamp columns for time-range queries</item>
+    <item>Connection pooling configured (5-10 connections, per architecture.md)</item>
+    <item>Lazy loading for relationships (avoid N+1 queries)</item>
+    <item>Use bulk inserts for batch operations (future optimization)</item>
+  </performance-considerations>
+
+  <definition-of-done>
+    <checklist>
+      <item>✅ Alembic migration created and runs successfully</item>
+      <item>✅ All 5 tables created with proper constraints and indices</item>
+      <item>✅ SQLAlchemy models defined in src/jarvis/database/models.py</item>
+      <item>✅ Database connection module in src/jarvis/database/postgres.py</item>
+      <item>✅ Unit tests passing (model validation, UTC handling)</item>
+      <item>✅ Integration tests passing (create/read conversations via ORM)</item>
+      <item>✅ Migration documented in README or docs/database-schema.md</item>
+      <item>✅ Code follows architecture patterns (type hints, dataclasses, error handling)</item>
+      <item>✅ Story file updated with implementation notes</item>
+      <item>✅ Sprint status updated to "done"</item>
+    </checklist>
+  </definition-of-done>
+
+  <traceability>
+    <prd-to-architecture>
+      <mapping>
+        <from>PRD FR4.1 - Conversation Storage</from>
+        <to>Architecture PostgreSQL Schema (lines 921-987)</to>
+        <to>ADR-007 UTC Timestamps</to>
+      </mapping>
+      <mapping>
+        <from>PRD FR3.1 - Provider Configuration</from>
+        <to>Architecture llm_providers table</to>
+      </mapping>
+      <mapping>
+        <from>PRD FR2.1 - Agent Persona Management</from>
+        <to>Architecture agent_personas table</to>
+      </mapping>
+    </prd-to-architecture>
+
+    <epic-to-story>
+      <epic-id>Epic 2 - Persistent Memory Backbone</epic-id>
+      <story-id>Story 2.1 - Conversation Storage Schema</story-id>
+      <rationale>
+        Story 2.1 lays the foundation for Epic 2 by creating the database schema
+        that all subsequent stories (2.2-2.5) will build upon. Document ingestion,
+        vector search, and memory compilation all depend on this schema.
+      </rationale>
+    </epic-to-story>
+  </traceability>
+</story-context>

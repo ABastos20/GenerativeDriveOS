@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>JARVIS Cognitive Cockpit</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #0f1520;
+            --bg-glass: rgba(15, 21, 32, 0.85);
+            --accent-cyan: #00e5ff;
+            --accent-magenta: #ff00ff;
+            --accent-gold: #ffc107;
+            --accent-green: #00ff88;
+            --text-primary: #e0e8f0;
+            --text-muted: #6b7a8f;
+            --border-glow: rgba(0, 229, 255, 0.3);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-glow);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            text-align: center;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            letter-spacing: 2px;
+        }
+        
+        /* Search */
+        .search-container {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-glow);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* Domain List */
+        .domain-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 0;
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            letter-spacing: 2px;
+            padding: 0 20px 10px;
+            text-transform: uppercase;
+        }
+        
+        .domain-list {
+            list-style: none;
+        }
+        
+        .domain-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .domain-item:hover {
+            background: rgba(0, 229, 255, 0.05);
+            border-left-color: var(--accent-cyan);
+        }
+        
+        .domain-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            border-left-color: var(--accent-cyan);
+        }
+        
+        .domain-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .domain-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        /* Stats Footer */
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(0, 229, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+        
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Main Canvas */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .tool-btn {
+            padding: 10px 15px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glow);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--accent-cyan);
+        }
+        
+        .tool-btn.active {
+            background: rgba(0, 229, 255, 0.2);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        
+        #cy {
+            flex: 1;
+            background: radial-gradient(ellipse at center, var(--bg-secondary) 0%, var(--bg-primary) 70%);
+        }
+        
+        /* Node Info Panel */
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 300px;
+            right: 20px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            border-radius: 8px;
+            padding: 15px 20px;
+            display: none;
+            z-index: 50;
+        }
+        
+        .info-panel.visible {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .info-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+        }
+        
+        .info-kind {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid var(--accent-magenta);
+            border-radius: 20px;
+            color: var(--accent-magenta);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-chains {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .chain-path {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chain-node {
+            padding: 4px 10px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent-green);
+        }
+        
+        .chain-arrow {
+            color: var(--text-muted);
+        }
+        
+        .expand-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 255, 136, 0.1));
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .expand-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--accent-cyan);
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 229, 255, 0.1);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">Cognitive Cockpit</div>
+            <div class="subtitle">Knowledge Graph Navigator</div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search entities...">
+        </div>
+        
+        <div class="domain-section">
+            <div class="section-title">Domain Matrix</div>
+            <ul class="domain-list" id="domainList">
+                <li class="domain-item active" data-domain="">
+                    <span class="domain-name">All Domains</span>
+                    <span class="domain-count" id="allCount">-</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="entityCount">0</div>
+                    <div class="stat-label">Entities</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="edgeCount">0</div>
+                    <div class="stat-label">Synapses</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="toolbar">
+            <button class="tool-btn" id="btnClusters">🧩 Clusters</button>
+            <button class="tool-btn" id="btnFit">Fit View</button>
+            <button class="tool-btn" id="btnChains">Show Chains</button>
+            <button class="tool-btn" id="btnReset">Reset</button>
+        </div>
+        
+        <div id="cy"></div>
+        
+        <div class="info-panel" id="infoPanel">
+            <div class="info-header">
+                <span class="info-name" id="infoName">-</span>
+                <span class="info-kind" id="infoKind">-</span>
+            </div>
+            <div class="info-chains" id="infoChains">
+                <strong>Coherent Chains:</strong>
+                <div class="chain-path" id="chainPath"></div>
+            </div>
+            <button class="expand-btn" onclick="if(selectedNodeId) expandNeighborhood(selectedNodeId, 2)">
+                ⚡ Expand Neighborhood
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let cy = null;
+        let currentDomain = '';
+        let allDomains = [];
+
+        // Cytoscape styles
+        const cytoscapeStyles = [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#00e5ff',
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'font-size': '11px',
+                    'font-family': 'Rajdhani, sans-serif',
+                    'font-weight': 500,
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'width': 40,
+                    'height': 40,
+                    'border-width': 2,
+                    'border-color': '#008ba3',
+                    'text-outline-color': '#0a0e17',
+                    'text-outline-width': 2
+                }
+            },
+            {
+                selector: 'node[kind="Company"]',
+                style: { 'background-color': '#ff00ff', 'border-color': '#aa00aa' }
+            },
+            {
+                selector: 'node[kind="Product"]',
+                style: { 'background-color': '#7c4dff', 'border-color': '#5a35cc' }
+            },
+            {
+                selector: 'node[kind="Person"]',
+                style: { 'background-color': '#00ff88', 'border-color': '#00cc6a' }
+            },
+            {
+                selector: 'node[kind="Concept"]',
+                style: { 'background-color': '#ffc107', 'border-color': '#cc9a00' }
+            },
+            {
+                selector: 'node[kind="Technology"]',
+                style: { 'background-color': '#ff5722', 'border-color': '#cc4519' }
+            },
+            {
+                selector: 'node:selected',
+                style: {
+                    'border-width': 4,
+                    'border-color': '#fff',
+                    'overlay-opacity': 0.2,
+                    'overlay-color': '#00e5ff'
+                }
+            },
+            {
+                selector: 'node.highlighted',
+                style: {
+                    'background-color': '#00ff88',
+                    'border-color': '#fff',
+                    'border-width': 3,
+                    'z-index': 999
+                }
+            },
+            {
+                selector: 'node.dimmed',
+                style: {
+                    'opacity': 0.2
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': '#2a3a4a',
+                    'target-arrow-color': '#2a3a4a',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'label': 'data(label)',
+                    'font-size': '9px',
+                    'font-family': 'Rajdhani, sans-serif',
+                    'color': '#6b7a8f',
+                    'text-background-opacity': 1,
+                    'text-background-color': '#0a0e17',
+                    'text-background-padding': '3px',
+                    'text-rotation': 'autorotate'
+                }
+            },
+            {
+                selector: 'edge.highlighted',
+                style: {
+                    'line-color': '#00ff88',
+                    'target-arrow-color': '#00ff88',
+                    'width': 3,
+                    'z-index': 999
+                }
+            },
+            {
+                selector: 'edge.dimmed',
+                style: {
+                    'opacity': 0.1
+                }
+            }
+        ];
+
+        // Initialize
+        async function init() {
+            await loadDomains();
+            await loadGraph();
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // Load domains from API
+        async function loadDomains() {
+            try {
+                const response = await fetch('/api/memory/domains');
+                const data = await response.json();
+                allDomains = data.domains || [];
+                renderDomainList();
+            } catch (err) {
+                console.error('Failed to load domains:', err);
+            }
+        }
+
+        // Render domain list in sidebar
+        function renderDomainList() {
+            const list = document.getElementById('domainList');
+            
+            // Keep "All Domains" item
+            let html = `
+                <li class="domain-item ${currentDomain === '' ? 'active' : ''}" data-domain="">
+                    <span class="domain-name">All Domains</span>
+                    <span class="domain-count" id="allCount">-</span>
+                </li>
+            `;
+            
+            allDomains.forEach(domain => {
+                html += `
+                    <li class="domain-item ${currentDomain === domain ? 'active' : ''}" data-domain="${domain}">
+                        <span class="domain-name">${formatDomainName(domain)}</span>
+                    </li>
+                `;
+            });
+            
+            list.innerHTML = html;
+            
+            // Attach click handlers
+            list.querySelectorAll('.domain-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    currentDomain = item.dataset.domain;
+                    loadGraph();
+                    renderDomainList();
+                });
+            });
+        }
+
+        // Format domain name for display
+        function formatDomainName(domain) {
+            return domain.split('.').map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1)
+            ).join(' › ');
+        }
+
+        // Load graph data
+        async function loadGraph() {
+            try {
+                let url = '/api/memory/graph?limit=500';
+                if (currentDomain) {
+                    url += `&domain=${encodeURIComponent(currentDomain)}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                renderGraph(data);
+                updateStats(data);
+            } catch (err) {
+                console.error('Failed to load graph:', err);
+            }
+        }
+
+        // Expand neighborhood around a node (viewport-aware pagination)
+        let selectedNodeId = null;
+        async function expandNeighborhood(nodeId, hops = 2) {
+            try {
+                const url = `/api/memory/graph/viewport?center_id=${nodeId}&hops=${hops}&limit=50`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Add new nodes and edges (skip existing ones)
+                const existingNodeIds = new Set(cy.nodes().map(n => n.id()));
+                const existingEdgeIds = new Set(cy.edges().map(e => e.id()));
+                
+                const newNodes = data.elements.nodes.filter(n => !existingNodeIds.has(n.data.id));
+                const newEdges = data.elements.edges.filter(e => !existingEdgeIds.has(e.data.id));
+                
+                if (newNodes.length > 0 || newEdges.length > 0) {
+                    cy.add([...newNodes, ...newEdges]);
+                    
+                    // Re-layout just the new nodes around center
+                    const centerNode = cy.getElementById(nodeId);
+                    const centerPos = centerNode.position();
+                    
+                    newNodes.forEach((n, i) => {
+                        const angle = (2 * Math.PI * i) / newNodes.length;
+                        const radius = 150;
+                        cy.getElementById(n.data.id).position({
+                            x: centerPos.x + radius * Math.cos(angle),
+                            y: centerPos.y + radius * Math.sin(angle)
+                        });
+                    });
+                    
+                    // Animate smooth adjustment
+                    cy.layout({ name: 'cose', animate: true, animationDuration: 300, fit: false }).run();
+                    
+                    updateStats({ elements: { nodes: cy.nodes().toArray(), edges: cy.edges().toArray() }});
+                    console.log(`Expanded: +${newNodes.length} nodes, +${newEdges.length} edges`);
+                }
+            } catch (err) {
+                console.error('Failed to expand neighborhood:', err);
+            }
+        }
+
+        // Render Cytoscape graph
+        function renderGraph(data) {
+            if (cy) {
+                cy.destroy();
+            }
+            
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: data.elements,
+                style: cytoscapeStyles,
+                layout: {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    randomize: true,
+                    componentSpacing: 120,
+                    nodeRepulsion: () => 500000,
+                    edgeElasticity: () => 150,
+                    nestingFactor: 5,
+                    gravity: 100,
+                    numIter: 1500,
+                    initialTemp: 300,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                },
+                wheelSensitivity: 0.3
+            });
+
+            // Node click: Show info panel + highlight chains
+            cy.on('tap', 'node', function(evt) {
+                const node = evt.target;
+                selectedNodeId = node.id();
+                showNodeInfo(node);
+                highlightChains(node);
+            });
+
+            // Double-click: Expand neighborhood
+            cy.on('dbltap', 'node', function(evt) {
+                const node = evt.target;
+                expandNeighborhood(node.id(), 2);
+            });
+
+            // Background click: Reset
+            cy.on('tap', function(evt) {
+                if (evt.target === cy) {
+                    hideNodeInfo();
+                    resetHighlights();
+                    selectedNodeId = null;
+                }
+            });
+        }
+
+        // Update stats display
+        function updateStats(data) {
+            const nodes = data.elements?.nodes?.length || 0;
+            const edges = data.elements?.edges?.length || 0;
+            
+            document.getElementById('entityCount').textContent = nodes;
+            document.getElementById('edgeCount').textContent = edges;
+            document.getElementById('allCount').textContent = nodes;
+        }
+
+        // Show node info panel
+        function showNodeInfo(node) {
+            const panel = document.getElementById('infoPanel');
+            document.getElementById('infoName').textContent = node.data('label');
+            document.getElementById('infoKind').textContent = node.data('kind') || 'Entity';
+            
+            // Build chain path
+            const chains = findCoherentChains(node);
+            renderChainPath(chains);
+            
+            panel.classList.add('visible');
+        }
+
+        // Hide node info panel
+        function hideNodeInfo() {
+            document.getElementById('infoPanel').classList.remove('visible');
+        }
+
+        // Find coherent chains (simple BFS)
+        function findCoherentChains(node, depth = 3) {
+            const chains = [];
+            const visited = new Set();
+            
+            function traverse(current, path, remaining) {
+                if (remaining === 0) {
+                    if (path.length > 1) chains.push([...path]);
+                    return;
+                }
+                
+                visited.add(current.id());
+                
+                const neighbors = current.neighborhood('node');
+                neighbors.forEach(neighbor => {
+                    if (!visited.has(neighbor.id())) {
+                        path.push(neighbor.data('label'));
+                        traverse(neighbor, path, remaining - 1);
+                        path.pop();
+                    }
+                });
+                
+                visited.delete(current.id());
+            }
+            
+            traverse(node, [node.data('label')], depth);
+            
+            // Return longest chain
+            return chains.sort((a, b) => b.length - a.length)[0] || [node.data('label')];
+        }
+
+        // Render chain path in info panel
+        function renderChainPath(chain) {
+            const container = document.getElementById('chainPath');
+            container.innerHTML = chain.map((name, i) => {
+                const isLast = i === chain.length - 1;
+                return `
+                    <span class="chain-node">${name}</span>
+                    ${!isLast ? '<span class="chain-arrow">→</span>' : ''}
+                `;
+            }).join('');
+        }
+
+        // Highlight chains connected to a node
+        function highlightChains(node) {
+            resetHighlights();
+            
+            const connected = node.closedNeighborhood();
+            
+            cy.elements().addClass('dimmed');
+            connected.removeClass('dimmed').addClass('highlighted');
+        }
+
+        // Reset highlights
+        function resetHighlights() {
+            cy.elements().removeClass('highlighted dimmed');
+        }
+
+        // Search entities
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (!query) {
+                resetHighlights();
+                return;
+            }
+            
+            const matches = cy.nodes().filter(node => 
+                node.data('label').toLowerCase().includes(query)
+            );
+            
+            if (matches.length > 0) {
+                cy.elements().addClass('dimmed');
+                matches.removeClass('dimmed').addClass('highlighted');
+                matches.connectedEdges().removeClass('dimmed');
+            }
+        });
+
+        // Toolbar buttons
+        document.getElementById('btnFit').addEventListener('click', () => {
+            cy.fit(null, 50);
+        });
+
+        document.getElementById('btnChains').addEventListener('click', () => {
+            // Toggle: find and highlight longest global chain
+            const nodes = cy.nodes();
+            let longestChain = [];
+            
+            nodes.forEach(node => {
+                const chain = findCoherentChains(node, 5);
+                if (chain.length > longestChain.length) {
+                    longestChain = chain;
+                }
+            });
+            
+            // Highlight nodes in longest chain
+            resetHighlights();
+            cy.elements().addClass('dimmed');
+            
+            longestChain.forEach(label => {
+                cy.nodes().filter(n => n.data('label') === label)
+                    .removeClass('dimmed').addClass('highlighted');
+            });
+        });
+
+        document.getElementById('btnReset').addEventListener('click', () => {
+            resetHighlights();
+            hideNodeInfo();
+            clusterMode = false;
+            document.getElementById('btnClusters').classList.remove('active');
+            loadGraph();
+        });
+
+        // ============================================
+        // Phase 8: Cluster View with Expand/Collapse
+        // ============================================
+        let clusterMode = false;
+        let expandedClusters = new Set();
+
+        // Toggle cluster view
+        document.getElementById('btnClusters').addEventListener('click', async () => {
+            clusterMode = !clusterMode;
+            const btn = document.getElementById('btnClusters');
+            
+            if (clusterMode) {
+                btn.classList.add('active');
+                await loadClusters();
+            } else {
+                btn.classList.remove('active');
+                expandedClusters.clear();
+                await loadGraph();
+            }
+        });
+
+        // Load clusters as super-nodes
+        async function loadClusters() {
+            try {
+                const response = await fetch('/api/memory/graph/clusters?limit=20');
+                const data = await response.json();
+                
+                // Build cluster super-nodes
+                const nodes = data.clusters.map(c => ({
+                    data: {
+                        id: `cluster-${c.cluster_id}`,
+                        label: c.representative?.name || `Cluster ${c.cluster_id}`,
+                        kind: 'Cluster',
+                        weight: Math.min(80, 20 + c.size),  // Size based on member count
+                        clusterId: c.cluster_id,
+                        memberCount: c.size,
+                        isCluster: true
+                    }
+                }));
+                
+                // Create edges between clusters that have connections
+                // (simplified: just show clusters, edges can be added later)
+                
+                renderClusterGraph({ elements: { nodes, edges: [] } });
+                updateStats({ elements: { nodes, edges: [] }});
+            } catch (err) {
+                console.error('Failed to load clusters:', err);
+            }
+        }
+
+        // Render cluster graph
+        function renderClusterGraph(data) {
+            if (cy) cy.destroy();
+            
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: data.elements,
+                style: [
+                    ...cytoscapeStyles,
+                    {
+                        selector: 'node[isCluster]',
+                        style: {
+                            'background-color': '#ffc107',
+                            'border-color': '#cc9a00',
+                            'border-width': 3,
+                            'width': 'data(weight)',
+                            'height': 'data(weight)',
+                            'font-size': '12px',
+                            'text-wrap': 'wrap',
+                            'text-max-width': 80
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'circle',
+                    animate: true,
+                    animationDuration: 400
+                },
+                wheelSensitivity: 0.3
+            });
+
+            // Click cluster: Show info + expand option
+            cy.on('tap', 'node[isCluster]', function(evt) {
+                const node = evt.target;
+                selectedNodeId = node.id();
+                showClusterInfo(node);
+            });
+
+            // Double-click cluster: Expand it
+            cy.on('dbltap', 'node[isCluster]', function(evt) {
+                const node = evt.target;
+                expandCluster(node.data('clusterId'));
+            });
+
+            cy.on('tap', function(evt) {
+                if (evt.target === cy) {
+                    hideNodeInfo();
+                }
+            });
+        }
+
+        // Show cluster info panel
+        function showClusterInfo(node) {
+            const panel = document.getElementById('infoPanel');
+            document.getElementById('infoName').textContent = node.data('label');
+            document.getElementById('infoKind').textContent = `Cluster (${node.data('memberCount')} members)`;
+            document.getElementById('chainPath').innerHTML = `
+                <span class="chain-node">Double-click to expand</span>
+            `;
+            
+            // Update expand button for cluster
+            const expandBtn = document.querySelector('.expand-btn');
+            expandBtn.textContent = '🔓 Expand Cluster';
+            expandBtn.onclick = () => expandCluster(node.data('clusterId'));
+            
+            panel.classList.add('visible');
+        }
+
+        // Expand cluster: Replace with member nodes
+        async function expandCluster(clusterId) {
+            try {
+                const response = await fetch(`/api/memory/graph/cluster/${clusterId}?limit=50`);
+                const data = await response.json();
+                
+                // Remove the cluster super-node
+                cy.remove(`#cluster-${clusterId}`);
+                
+                // Add member nodes with animation
+                cy.add(data.elements.nodes);
+                cy.add(data.elements.edges);
+                
+                expandedClusters.add(clusterId);
+                
+                // Animate layout
+                cy.layout({
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    fit: true
+                }).run();
+                
+                updateStats({ elements: { nodes: cy.nodes().toArray(), edges: cy.edges().toArray() }});
+                hideNodeInfo();
+                
+                console.log(`Expanded cluster ${clusterId}: +${data.elements.nodes.length} nodes`);
+            } catch (err) {
+                console.error('Failed to expand cluster:', err);
+            }
+        }
+
+        // Boot
+        init();
+    </script>
+</body>
+</html>

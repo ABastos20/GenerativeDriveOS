@@ -1,0 +1,179 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.1">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-3</storyId>
+    <title>Trust-Weighted Consensus</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>Dev Agent</generator>
+    <sourceStoryPath>docs/sprints/stories/9-3-trust-weighted-consensus.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>civilization architect</asA>
+    <iWant>a mathematically rigorous trust-weighting system</iWant>
+    <soThat>voting power reflects epistemic reliability and historical integrity</soThat>
+    <tasks>
+      <task id="1">Create Trust Data Model (AC: 1, 2)</task>
+      <task id="2">Implement Consensus Engine (AC: 3, 4, 5, 6)</task>
+      <task id="3">Trust Dynamics & Updates (AC: 8, 9)</task>
+      <task id="4">Integration & API (AC: 10, 11, 12)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Trust Components: 4-part vector (Epistemic, Governance, History, Reputation)</criterion>
+    <criterion id="AC2">Trust Formula: Weighted sum (0.4, 0.3, 0.2, 0.1)</criterion>
+    <criterion id="AC3">Vote Weight: Derived from Trust Score</criterion>
+    <criterion id="AC4">Anti-Elite Capture: Weight <= 5 * median(weight)</criterion>
+    <criterion id="AC5">Sybil Resistance: Low trust yields sub-linear weight</criterion>
+    <criterion id="AC6">Minority Protection: Floor weight epsilon</criterion>
+    <criterion id="AC7">Initialization: Default neutral weight</criterion>
+    <criterion id="AC8">Update Equation: T_new = T_old + eta * alignment</criterion>
+    <criterion id="AC9">Drift: Periodic decay</criterion>
+    <criterion id="AC10">API: POST /api/governance/trust/recalculate</criterion>
+    <criterion id="AC11">Voting Hook: Integrate with Story 9-2</criterion>
+    <criterion id="AC12">Transparency: GET /api/governance/trust/{user_id}</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/9-3-trust-weighted-consensus.md" title="Story 9-3" section="Trust Components" snippet="T_i = alpha*E + beta*C + gamma*H + delta*R"/>
+    </docs>
+    <code>
+      <file path="src/jarvis/governance/models.py" kind="models" symbol="GovernanceUser" lines="1-100" reason="Target for One-to-One TrustScore relation"/>
+      <file path="src/jarvis/governance/voting.py" kind="voting" symbol="VotingEngine" lines="1-300" reason="Integration point for vote weighting"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="numpy" version="*"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Trust Formula: 0.4*E + 0.3*C + 0.2*H + 0.1*R</constraint>
+    <constraint>Anti-Elite: w <= 5 * median(w)</constraint>
+    <constraint>Sybil: Non-linear penalty for low trust</constraint>
+    <constraint>Minority: Max(w, epsilon)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/trust/{user_id}" kind="REST" signature="GET /api/governance/trust/{user_id} -> TrustScoreDetail" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/trust/recalculate" kind="REST" signature="POST /api/governance/trust/recalculate -> {processed: int}" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/trust/distribution" kind="REST" signature="GET /api/governance/trust/distribution -> {median: float, max: float}" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Verify mathematical correctness of formula. Verify safety constraints (caps and floors).</standards>
+    <locations>
+      <location>tests/components/test_consensus_engine.py</location>
+      <location>tests/integration/test_trust_integration.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC4">Create skewed distribution and verify cap works</idea>
+      <idea acId="AC5">Create 100 low-trust users and verify aggregate power is sub-linear</idea>
+      <idea acId="AC8">Simulate multiple voting rounds and verify score updates</idea>
+    </ideas>
+  </tests>
+</story-context>
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-3</storyId>
+    <title>Trust-Weighted Consensus</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/9-3-trust-weighted-consensus.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>domain expert participating in governance</asA>
+    <iWant>my votes to carry more weight in my areas of expertise</iWant>
+    <soThat>demonstrated knowledge is valued over simple head-counting</soThat>
+    <tasks>
+      <task id="1">Create TrustScore model with user × domain → score</task>
+      <task id="2">Define domain taxonomy (security, architecture, data, etc.)</task>
+      <task id="3">Implement TrustCalculator with composite formula</task>
+      <task id="4">Build trust boost on correct votes</task>
+      <task id="5">Implement trust decay on inactivity</task>
+      <task id="6">Create DomainClassifier for proposal domain detection</task>
+      <task id="7">Integrate vote weight calculation with Story 9-2</task>
+      <task id="8">Create trust API endpoints and leaderboard</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">TrustScore Model: User × Domain → Score (0.0 to 1.0)</criterion>
+    <criterion id="AC2">Domain Taxonomy: Define domains (security, architecture, data, UX, etc.)</criterion>
+    <criterion id="AC3">Default Trust: New users start at 0.5 (neutral)</criterion>
+    <criterion id="AC4">API Endpoint: GET /api/governance/trust/{user_id} returns scores</criterion>
+    <criterion id="AC5">Claimed Expertise: Self-declared domain knowledge</criterion>
+    <criterion id="AC6">Demonstrated Expertise: Derived from vote accuracy history</criterion>
+    <criterion id="AC7">Engagement Factor: Active participants gain trust</criterion>
+    <criterion id="AC8">Trust Formula: trust = (claimed × 0.2) + (demonstrated × 0.6) + (engagement × 0.2)</criterion>
+    <criterion id="AC9">Trust Boost: Votes that align with winning decisions increase trust</criterion>
+    <criterion id="AC10">Trust Decay: Inactivity reduces trust over time (floor at 0.3)</criterion>
+    <criterion id="AC11">Trust Correction: Votes against outcomes decrease trust slightly</criterion>
+    <criterion id="AC12">API Endpoint: POST /api/governance/trust/recalculate updates all scores</criterion>
+    <criterion id="AC13">Vote Weight: weight = base_weight × trust_score[domain]</criterion>
+    <criterion id="AC14">Domain Detection: Auto-detect relevant domain from proposal</criterion>
+    <criterion id="AC15">Weight Caps: Max weight = 2.0× to prevent single-user dominance</criterion>
+    <criterion id="AC16">Transparency: Show weight calculation in vote details</criterion>
+    <criterion id="AC17">Trust Leaderboard: Top experts per domain</criterion>
+    <criterion id="AC18">Trust History: Track trust changes over time</criterion>
+    <criterion id="AC19">Trust Audit: Log all trust modifications</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-9-planning.md" title="Epic 9 Planning" section="9-3: Trust-Weighted Consensus" snippet="Weight votes by domain expertise and historical accuracy. TrustScorer that adjusts vote weight."/>
+      <doc path="docs/sprints/stories/9-2-disagreement-voting-engine.md" title="Story 9-2" section="Vote Weight" snippet="Vote weight from trust score feeds into vote calculation."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/governance/voting.py" kind="voting" symbol="VoteCalculator" lines="1-50" reason="Integrate trust weight into vote calculation"/>
+      <file path="src/jarvis/database/models.py" kind="models" symbol="Entity" lines="509-548" reason="SQLAlchemy model patterns"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="pydantic" version="^2.0"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Trust formula: (claimed × 0.2) + (demonstrated × 0.6) + (engagement × 0.2)</constraint>
+    <constraint>Maximum vote weight: 2.0× (prevents single-user oligarchy)</constraint>
+    <constraint>Trust decay floor: 0.3 (inactive users don't go to zero)</constraint>
+    <constraint>All trust calculations must be visible and auditable</constraint>
+    <constraint>Trust boost: +0.02 per correct vote (max 1.0)</constraint>
+    <constraint>Trust correction: -0.01 per incorrect vote (floor 0.0)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/trust/{user_id}" kind="REST" signature="GET /api/governance/trust/{user_id} -> {scores: Dict[domain, TrustScore]}" path="src/jarvis/api/governance.py"/>
+    <interface name="PUT /api/governance/trust/{user_id}/claim" kind="REST" signature="PUT /api/governance/trust/{user_id}/claim {domain, level} -> TrustScore" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/trust/recalculate" kind="REST" signature="POST /api/governance/trust/recalculate -> {updated: int}" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/trust/leaderboard" kind="REST" signature="GET /api/governance/trust/leaderboard?domain=security -> {leaders: List[TrustRanking]}" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/trust/history/{user_id}" kind="REST" signature="GET /api/governance/trust/history/{user_id} -> {history: List[TrustChange]}" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Test trust formula calculation. Test weight caps. Test decay.</standards>
+    <locations>
+      <location>tests/unit/test_trust_score.py</location>
+      <location>tests/unit/test_trust_calculator.py</location>
+      <location>tests/unit/test_domain_classifier.py</location>
+      <location>tests/integration/test_trust_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC3">Test new user gets default trust 0.5</idea>
+      <idea acId="AC8">Test trust formula calculation is correct</idea>
+      <idea acId="AC9">Test correct vote increases trust</idea>
+      <idea acId="AC10">Test inactivity decays trust (floor 0.3)</idea>
+      <idea acId="AC15">Test weight is capped at 2.0×</idea>
+    </ideas>
+  </tests>
+</story-context>

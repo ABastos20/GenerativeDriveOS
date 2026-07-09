@@ -1,0 +1,25 @@
+.git
+.gitignore
+.vscode
+.bmad
+.claude
+.gemini
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+
+gitleaks-bin
+gitleaks-report.json
+.coverage
+coverage.*
+htmlcov/
+
+dev/
+tmp/
+
+docs/gpt export/
+
+# Local Claude CLI debug logs (cause permission issues in Docker build)
+docker/docker/llmsCliConfigs/.claude/debug/
+docker/docker/llmsCliConfigs/.claude/todos/

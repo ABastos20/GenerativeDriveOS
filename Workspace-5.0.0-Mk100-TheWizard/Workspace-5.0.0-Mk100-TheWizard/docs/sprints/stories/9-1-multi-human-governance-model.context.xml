@@ -1,0 +1,101 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-1</storyId>
+    <title>Multi-Human Governance Model</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/9-1-multi-human-governance-model.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis architect building machine democracy</asA>
+    <iWant>a multi-human governance model with roles, permissions, and escalation paths</iWant>
+    <soThat>multiple stakeholders can participate in AI decisions with clear authority structures</soThat>
+    <tasks>
+      <task id="1">Create GovernanceUser model extending base User with governance fields</task>
+      <task id="2">Define Role enum (Owner, Admin, Contributor, Observer)</task>
+      <task id="3">Create Permission matrix mapping roles to actions</task>
+      <task id="4">Create PermissionGate class for role-gated endpoints</task>
+      <task id="5">Create EscalationRule model and EscalationEngine</task>
+      <task id="6">Implement escalation triggers (tie votes, quorum failed, CSI threshold)</task>
+      <task id="7">Create governance API endpoints</task>
+      <task id="8">Integrate with GovernanceGate from Story 8-8</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">GovernanceUser Model: Extends base User with governance fields</criterion>
+    <criterion id="AC2">Role Enum: Owner, Admin, Contributor, Observer</criterion>
+    <criterion id="AC3">Role Permissions Matrix: What each role can do</criterion>
+    <criterion id="AC4">API Endpoint: GET /api/governance/users lists governance users</criterion>
+    <criterion id="AC5">Permission Model: Action → Role mapping</criterion>
+    <criterion id="AC6">Permission Categories: vote, propose, amend, override, view</criterion>
+    <criterion id="AC7">Permission Check: Decorator/middleware for role-gated endpoints</criterion>
+    <criterion id="AC8">API Endpoint: GET /api/governance/permissions returns matrix</criterion>
+    <criterion id="AC9">EscalationRule Model: Condition → escalate to higher authority</criterion>
+    <criterion id="AC10">Escalation Triggers: Tie votes, quorum not met, constitutional conflict</criterion>
+    <criterion id="AC11">Escalation Chain: Contributor → Admin → Owner</criterion>
+    <criterion id="AC12">API Endpoint: GET /api/governance/escalations returns pending</criterion>
+    <criterion id="AC13">Governance Gate: Connect to CSI thresholds from Story 8-8</criterion>
+    <criterion id="AC14">Auto-Escalate: When system stability drops, require higher authority</criterion>
+    <criterion id="AC15">Audit Trail: All role assignments and permission changes logged</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-9-planning.md" title="Epic 9 Planning" section="9-1: Multi-Human Governance Model" snippet="Define governance structure with roles, permissions, and escalation paths. GovernanceModel class with user roles."/>
+      <doc path="docs/sprints/stories/8-8-epistemic-autonomy-layer.md" title="Story 8-8" section="Governance Node" snippet="DORMANT features activate when 9-4 constitutional framework complete."/>
+      <doc path="src/jarvis/memory/governance_node.py" title="Governance Node" section="GovernanceGate" snippet="Existing governance gate pattern for CSI-based escalation."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/memory/governance_node.py" kind="governance" symbol="GovernanceGate" lines="55-120" reason="Existing governance gate to integrate with"/>
+      <file path="src/jarvis/database/models.py" kind="models" symbol="Entity" lines="509-548" reason="Pattern for SQLAlchemy models with UUID"/>
+      <file path="src/jarvis/api/memory.py" kind="api" symbol="router" lines="1-50" reason="Pattern for FastAPI router endpoints"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="pydantic" version="^2.0"/>
+        <package name="alembic" version="^1.12"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>New package: src/jarvis/governance/ for all governance modules</constraint>
+    <constraint>Follow existing model patterns from models.py</constraint>
+    <constraint>Use FastAPI router pattern from existing API modules</constraint>
+    <constraint>Create Alembic migration for new tables</constraint>
+    <constraint>Integrate with existing observability for audit trail</constraint>
+    <constraint>Keep modules under 400 LOC per ADR standards</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/users" kind="REST" signature="GET /api/governance/users -> {users: List[GovernanceUser]}" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/users" kind="REST" signature="POST /api/governance/users {name, email, role} -> GovernanceUser" path="src/jarvis/api/governance.py"/>
+    <interface name="PATCH /api/governance/users/{id}/role" kind="REST" signature="PATCH /api/governance/users/{id}/role {role} -> GovernanceUser" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/permissions" kind="REST" signature="GET /api/governance/permissions -> PermissionMatrix" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/escalations" kind="REST" signature="GET /api/governance/escalations -> {escalations: List[Escalation]}" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/escalations/{id}/resolve" kind="REST" signature="POST /api/governance/escalations/{id}/resolve -> {status: str}" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with async fixtures. Test permission checking. Test escalation triggers.</standards>
+    <locations>
+      <location>tests/unit/test_governance_users.py</location>
+      <location>tests/unit/test_permissions.py</location>
+      <location>tests/unit/test_escalation.py</location>
+      <location>tests/integration/test_governance_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC2">Test all four roles are defined correctly</idea>
+      <idea acId="AC3">Test permission matrix enforces correct access</idea>
+      <idea acId="AC7">Test permission decorator blocks unauthorized access</idea>
+      <idea acId="AC10">Test tie vote triggers escalation</idea>
+      <idea acId="AC13">Test CSI threshold triggers escalation</idea>
+    </ideas>
+  </tests>
+</story-context>

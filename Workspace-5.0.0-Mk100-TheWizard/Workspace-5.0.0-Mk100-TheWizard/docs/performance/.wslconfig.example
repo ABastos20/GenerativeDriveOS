@@ -1,0 +1,19 @@
+[wsl2]
+# AMD Ryzen 7 9800X3D Optimization
+# Use 12 of 16 threads (leave 4 for Windows)
+processors=12
+
+# Use 48GB of 64GB RAM (leave 16GB for Windows)
+memory=48GB
+
+# Swap for safety
+swap=8GB
+
+# Performance tuning
+localhostForwarding=true
+
+# Disable page reporting for performance
+pageReporting=false
+
+# Use nested virtualization (better Docker performance)
+nestedVirtualization=true

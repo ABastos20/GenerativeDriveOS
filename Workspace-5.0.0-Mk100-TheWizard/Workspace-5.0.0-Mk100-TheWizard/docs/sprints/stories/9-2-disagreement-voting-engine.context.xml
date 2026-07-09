@@ -1,0 +1,105 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-2</storyId>
+    <title>Disagreement Voting Engine</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/9-2-disagreement-voting-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>governance participant</asA>
+    <iWant>a structured voting system for resolving disagreements</iWant>
+    <soThat>multiple humans can make collective decisions with clear rules and deadlines</soThat>
+    <tasks>
+      <task id="1">Create Proposal model with lifecycle state machine</task>
+      <task id="2">Create Vote model with uniqueness constraint (one vote per user)</task>
+      <task id="3">Implement vote casting with immutability</task>
+      <task id="4">Build quorum and threshold checking</task>
+      <task id="5">Create VoteCalculator for weighted vote tallying</task>
+      <task id="6">Implement tie detection and escalation</task>
+      <task id="7">Create proposal expiration background job</task>
+      <task id="8">Build proposal and voting API endpoints</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Proposal Model: Title, description, proposer, type, status, deadline</criterion>
+    <criterion id="AC2">Proposal Types: decision, config_change, constitutional_amendment</criterion>
+    <criterion id="AC3">Proposal Lifecycle: draft → open → voting → passed/rejected/expired</criterion>
+    <criterion id="AC4">API Endpoint: POST /api/governance/proposals creates proposal</criterion>
+    <criterion id="AC5">Vote Model: Proposal, user, vote (for/against/abstain), weight, reason</criterion>
+    <criterion id="AC6">Vote Collection: Track all votes with timestamps</criterion>
+    <criterion id="AC7">Vote Immutability: Once cast, votes cannot be changed</criterion>
+    <criterion id="AC8">API Endpoint: POST /api/governance/proposals/{id}/vote casts vote</criterion>
+    <criterion id="AC9">Quorum Configuration: Minimum participation percentage (default 50%)</criterion>
+    <criterion id="AC10">Approval Threshold: Percentage needed to pass (default 50%+1)</criterion>
+    <criterion id="AC11">Constitutional Threshold: Higher bar for amendments (80%)</criterion>
+    <criterion id="AC12">Timeout Rules: Auto-expire proposals after deadline</criterion>
+    <criterion id="AC13">Vote Calculator: Tally weighted votes and determine outcome</criterion>
+    <criterion id="AC14">Tie Breaker: Escalate ties to higher authority (Story 9-1)</criterion>
+    <criterion id="AC15">Result Notification: Notify all participants of outcome</criterion>
+    <criterion id="AC16">API Endpoint: GET /api/governance/proposals/{id}/results returns outcome</criterion>
+    <criterion id="AC17">Vote History: Public record of all votes</criterion>
+    <criterion id="AC18">Vote Reasoning: Optional explanation for each vote</criterion>
+    <criterion id="AC19">Audit Trail: Complete audit log of proposal lifecycle</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-9-planning.md" title="Epic 9 Planning" section="9-2: Disagreement Voting Engine" snippet="Enable structured voting. VotingEngine that tracks proposals, votes, and outcomes."/>
+      <doc path="docs/sprints/stories/9-1-multi-human-governance-model.md" title="Story 9-1" section="Escalation" snippet="Tie votes escalate to higher authority."/>
+      <doc path="docs/sprints/stories/9-3-trust-weighted-consensus.md" title="Story 9-3" section="Trust" snippet="Vote weight comes from trust scores."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/governance/models.py" kind="models" symbol="GovernanceUser" lines="1-50" reason="User model to link votes to"/>
+      <file path="src/jarvis/governance/permissions.py" kind="permissions" symbol="PermissionGate" lines="1-30" reason="Check proposal creation permissions"/>
+      <file path="src/jarvis/database/models.py" kind="models" symbol="Entity" lines="509-548" reason="SQLAlchemy model patterns"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="pydantic" version="^2.0"/>
+        <package name="apscheduler" version="^3.10" comment="For background expiration job"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Votes are IMMUTABLE once cast (audit compliance)</constraint>
+    <constraint>One vote per user per proposal (database constraint)</constraint>
+    <constraint>Constitutional amendments require 75% quorum + 80% approval</constraint>
+    <constraint>Ties escalate to next role level (Contributor → Admin → Owner)</constraint>
+    <constraint>Vote weight default = 1.0 until Story 9-3 trust scores</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/proposals" kind="REST" signature="GET /api/governance/proposals?status=open -> {proposals: List[Proposal]}" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/proposals" kind="REST" signature="POST /api/governance/proposals {title, description, type} -> Proposal" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/proposals/{id}" kind="REST" signature="GET /api/governance/proposals/{id} -> Proposal" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/proposals/{id}/open" kind="REST" signature="POST /api/governance/proposals/{id}/open -> Proposal" path="src/jarvis/api/governance.py"/>
+    <interface name="POST /api/governance/proposals/{id}/vote" kind="REST" signature="POST /api/governance/proposals/{id}/vote {vote, reason?} -> Vote" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/proposals/{id}/votes" kind="REST" signature="GET /api/governance/proposals/{id}/votes -> {votes: List[Vote]}" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/proposals/{id}/results" kind="REST" signature="GET /api/governance/proposals/{id}/results -> VoteResult" path="src/jarvis/api/governance.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with async fixtures. Test vote immutability. Test quorum and threshold calculations.</standards>
+    <locations>
+      <location>tests/unit/test_proposals.py</location>
+      <location>tests/unit/test_voting.py</location>
+      <location>tests/unit/test_vote_calculator.py</location>
+      <location>tests/integration/test_voting_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC3">Test proposal lifecycle state transitions</idea>
+      <idea acId="AC7">Test vote cannot be changed after casting</idea>
+      <idea acId="AC9">Test quorum not met blocks resolution</idea>
+      <idea acId="AC11">Test constitutional amendment requires 80%</idea>
+      <idea acId="AC14">Test tie triggers escalation</idea>
+    </ideas>
+  </tests>
+</story-context>

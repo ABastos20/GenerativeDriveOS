@@ -1,0 +1,204 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-7</storyId>
+    <title>Synthetic Evidence & Simulation Certification</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-7-synthetic-certification.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect</asA>
+    <iWant>all synthetic knowledge, simulations, and generated datasets to be cryptographically certified and epistemically labeled</iWant>
+    <soThat>Jarvis never confuses imagined reality with observed reality — even when it is the one generating both</soThat>
+    <tasks>
+      <task id="1" ac="1">Implement Synthetic Origin Tagging</task>
+      <task id="2" ac="2">Build Simulation Certificate System</task>
+      <task id="3" ac="3">Implement Synthetic Firewall</task>
+      <task id="4" ac="4">Build Replay & Determinism Controls</task>
+      <task id="5" ac="5">Implement Forecast Firewall</task>
+      <task id="6" ac="6">Build Self-Training Guard</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" title="Synthetic Origin Tagging (Mandatory)">
+      All generated outputs declare: origin=synthetic, generator_id, model_version, prompt_hash. No synthetic object enters Tier 2 via ingestion. Enforced at BMAD output, simulation engine, forecast modules. Automated detection, validation before Epistemic Ledger storage.
+    </criterion>
+    <criterion id="2" title="Simulation Certificate">
+      SimulationCertificate schema: sim_id, model_id, assumptions, boundary_conditions, confidence_interval, hazard_flags. Every simulation result carries certificate. Stored as class="synthetic_certified". Certificate includes full simulation metadata for audit.
+    </criterion>
+    <criterion id="3" title="Synthetic → Evidence Firewall">
+      Forbidden transitions: Synthetic → Primary Evidence (NEVER), Synthetic → Governance Input (BLOCKED). Allowed: Synthetic → Provisional with label. Attempted promotion triggers C-IDS alert + governance audit. Hard firewall rules, no bypass except governance override.
+    </criterion>
+    <criterion id="4" title="Simulation Replay & Determinism Control">
+      Simulations rehydrate identical results for same seed (deterministic) or store stochastic drift. Certified as deterministic|stochastic. Replay validation via hash comparison (deterministic) or statistical bounds (stochastic). Drift detection and logging.
+    </criterion>
+    <criterion id="5" title="Forecast vs Fact Firewall">
+      Future predictions tagged as knowledge_class="forecast". Forecasts cannot update beliefs directly, only influence scenario layers. Must carry confidence intervals and uncertainty quantification. Automatic forecast detection enforced.
+    </criterion>
+    <criterion id="6" title="Recursive Self-Training Block">
+      Synthetic output cannot be: re-ingested as Tier-2, used as training data, used as trust reference. Unless: human-signed governance waiver exists, simulation lineage passes audit. Recursive ingestion detection, automatic blocking with alerts.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/stories/11-5-knowledge-sovereignty.md</path>
+        <title>Story 11.5 — Knowledge Sovereignty & Provenance Arbitration</title>
+        <section>Lock 7 - Epistemic Sovereignty</section>
+        <snippet>Knowledge tier lattice K0-K4. Trust decay: T(i,t) = c₀(i) · e^(-λ_K · (t - t₀)). Dual-persona arbitration for tier promotion. Epistemic audit log.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/11-6-sovereign-ingestion.md</path>
+        <title>Story 11.6 — Sovereign Ingestion & Trust Scoring Pipeline</title>
+        <section>Lock 8 - Ingestion Sovereignty</section>
+        <snippet>Unified ingestion pipeline with trust scoring. Three ingestion tiers: Quarantine (0), Provisional (1), Authoritative (2). Ingestion firewall blocks poisoning.</snippet>
+      </doc>
+      <doc>
+        <path>docs/archive/architectNotesEpic11.txt</path>
+        <title>Epic 11 Architect Notes</title>
+        <section>Story 11-7 (lines 622-868): Synthetic Evidence & Simulation Certification</section>
+        <snippet>Complete formal specifications for Lock 9 (Synthetic Sovereignty) including certification schemas, firewall rules, replay validation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/knowledge/tiers.py</path>
+        <kind>module</kind>
+        <symbol>KnowledgeTier enum</symbol>
+        <lines>new in 11-5</lines>
+        <reason>Tier definitions. Story 11-7 prevents synthetic content from reaching K0-K2 except via certified path.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/knowledge/provenance.py</path>
+        <kind>module</kind>
+        <symbol>ProvenanceVector</symbol>
+        <lines>new in 11-5</lines>
+        <reason>Provenance ledger. Story 11-7 extends with origin field (observed/reported/synthetic).</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/ingestion/pipeline.py</path>
+        <kind>module</kind>
+        <symbol>IngestionPipeline.ingest</symbol>
+        <lines>new in 11-6</lines>
+        <reason>Ingestion pipeline. Story 11-7 adds synthetic blocking at Tier 2 ingestion.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/governance/cids.py</path>
+        <kind>module</kind>
+        <symbol>record_denial, detect_patterns</symbol>
+        <lines>from 11-4</lines>
+        <reason>Cognitive IDS. Story 11-7 integrates for self-training loop detection and synthetic promotion attempts.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/agents/reasoning_engine.py</path>
+        <kind>module</kind>
+        <symbol>LLMReasoningEngine</symbol>
+        <lines>1-603</lines>
+        <reason>Reasoning engine with Locks 1-5. Story 11-7 ensures BMAD output is tagged as synthetic.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version="^2.9.0">Type validation for SimulationCertificate dataclass</package>
+        <package name="python-jose" version="^3.5.0" extras="cryptography">SHA-256 hashing for simulation replay validation</package>
+        <package name="structlog" version="^24.1.0">Audit logging for synthetic origin tagging</package>
+        <package name="sqlalchemy" version="^2.0.0">PostgreSQL ORM for synthetic content tracking</package>
+      </python>
+      <external>
+        <tool name="pytest">Unit tests for synthetic tagging, certification, firewall</tool>
+        <tool name="pytest-cov">Test coverage for synthetic sovereignty</tool>
+      </external>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architectural" priority="critical">
+      Story 11-7 completes the Knowledge Sovereignty trilogy (11-5, 11-6, 11-7). Must integrate with existing epistemic ledger, ingestion pipeline, and C-IDS. Do NOT break existing tier system or provenance sealing.
+    </constraint>
+    <constraint type="security" priority="critical">
+      Synthetic → Evidence firewall is ABSOLUTE. No synthetic content can become Tier 2 (Authoritative) without explicit human/governance certification. NO exceptions, NO backdoors.
+    </constraint>
+    <constraint type="data" priority="critical">
+      Origin field (observed/reported/synthetic) is immutable once set. Simulation certificates are cryptographically sealed. Replay hashes are tamper-proof.
+    </constraint>
+    <constraint type="philosophical" priority="critical">
+      Lock 9 prevents "the system cannot believe its own dreams". Synthetic content must ALWAYS be distinguishable from observed reality, even when used for reasoning.
+    </constraint>
+    <constraint type="integration" priority="high">
+      BMAD output, simulation engine, forecast modules must ALL tag synthetic origin. No exemptions. Integration points: reasoning_engine.py, memory/belief_tracker.py, agents/*.py.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>OriginType enum</name>
+      <kind>Type definition</kind>
+      <signature>class OriginType(str, Enum): OBSERVED = "observed", REPORTED = "reported", SYNTHETIC = "synthetic"</signature>
+      <path>src/jarvis/simulation/origins.py</path>
+    </interface>
+    <interface>
+      <name>SimulationCertificate</name>
+      <kind>Pydantic model</kind>
+      <signature>@dataclass class SimulationCertificate: sim_id: str, model_id: str, assumptions: list[str], boundary_conditions: dict, confidence_interval: tuple[float, float], hazard_flags: list[str]</signature>
+      <path>src/jarvis/simulation/certificates.py</path>
+    </interface>
+    <interface>
+      <name>SyntheticTagger.tag_output()</name>
+      <kind>Function</kind>
+      <signature>def tag_output(content: str, generator_id: str, model_version: str, prompt_hash: str) -> SyntheticTag</signature>
+      <path>src/jarvis/simulation/tagging.py</path>
+    </interface>
+    <interface>
+      <name>SyntheticFirewall.validate_promotion()</name>
+      <kind>Function</kind>
+      <signature>def validate_promotion(knowledge_id: str, from_tier: KnowledgeTier, to_tier: KnowledgeTier, origin: OriginType) -> tuple[bool, str]</signature>
+      <path>src/jarvis/simulation/firewall.py</path>
+    </interface>
+    <interface>
+      <name>ReplayGuard.validate_replay()</name>
+      <kind>Function</kind>
+      <signature>def validate_replay(sim_id: str, seed: int, expected_hash: str, actual_result: Any) -> bool</signature>
+      <path>src/jarvis/simulation/replay_guard.py</path>
+    </interface>
+    <interface>
+      <name>ForecastClassifier.classify()</name>
+      <kind>Function</kind>
+      <signature>def classify(content: str, metadata: dict) -> tuple[bool, float]  # (is_forecast, confidence)</signature>
+      <path>src/jarvis/forecasting/classifier.py</path>
+    </interface>
+    <interface>
+      <name>SelfTrainingGuard.detect_recursion()</name>
+      <kind>Function</kind>
+      <signature>def detect_recursion(knowledge_id: str, ingestion_lineage: list[str]) -> bool</signature>
+      <path>src/jarvis/simulation/self_training_guard.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All synthetic sovereignty components must have ≥90% test coverage. Unit tests for: synthetic origin tagging, simulation certificates, firewall validation, replay determinism, forecast classification, self-training detection. Integration tests for: end-to-end synthetic workflow (BMAD output → tagged → ledger), firewall blocking Tier 2 promotion, self-training loop prevention.
+    </standards>
+    <locations>
+      <location>tests/unit/test_synthetic_tagging.py</location>
+      <location>tests/unit/test_simulation_certifier.py</location>
+      <location>tests/unit/test_synthetic_firewall.py</location>
+      <location>tests/unit/test_replay_guard.py</location>
+      <location>tests/unit/test_forecast_classifier.py</location>
+      <location>tests/unit/test_self_training_guard.py</location>
+      <location>tests/integration/test_synthetic_sovereignty_flow.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test BMAD output → synthetic tag added. Test simulation result → tagged. Verify generator_id, model_version, prompt_hash present.</idea>
+      <idea ac="2">Test SimulationCertificate creation with all required fields. Verify certificate storage in ledger as class="synthetic_certified".</idea>
+      <idea ac="3">Test firewall blocks: synthetic → Tier 2 (DENY), synthetic → governance (DENY). Test firewall allows: synthetic → Tier 1 with label.</idea>
+      <idea ac="4">Test deterministic replay: same seed → same hash. Test stochastic replay: within statistical bounds. Verify drift logging.</idea>
+      <idea ac="5">Test forecast detection: "will happen" → forecast=true. Test belief update blocking for forecasts. Verify confidence intervals.</idea>
+      <idea ac="6">Test self-training: synthetic content → training data (BLOCK). Test governance waiver allows. Verify lineage audit.</idea>
+    </ideas>
+  </tests>
+</story-context>

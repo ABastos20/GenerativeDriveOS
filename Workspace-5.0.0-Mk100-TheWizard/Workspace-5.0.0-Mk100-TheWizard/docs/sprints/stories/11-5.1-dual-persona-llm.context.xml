@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <metadata>
+    <story-id>11-5.1</story-id>
+    <title>Dual-Persona LLM Integration</title>
+    <epic>11 – Mk100 "The Wizard"</epic>
+    <parent>11-5 (Knowledge Sovereignty)</parent>
+    <priority>MEDIUM</priority>
+    <type>Tech Debt Resolution</type>
+    <generated>2025-12-10T19:28:00Z</generated>
+  </metadata>
+
+  <user-story>
+    <as-a>system architect</as-a>
+    <i-want>the Analyst and Adversary personas to use real LLM calls</i-want>
+    <so-that>dual-persona arbitration produces genuinely adversarial evaluation, not placeholder heuristics</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <ac id="1" title="Analyst Persona LLM Integration">
+      <description>Analyst persona calls real LLM via existing provider interface with coherence/logic prompt</description>
+      <implementation>
+        <item>analyst_llm_call(i) uses existing provider interface</item>
+        <item>Prompt focuses on: coherence, logic, contradiction detection</item>
+        <item>Returns (bool, str) - verdict and explanation</item>
+        <item>Pure function - no side effects</item>
+      </implementation>
+    </ac>
+    <ac id="2" title="Adversary Persona LLM Integration">
+      <description>Adversary persona calls LLM with adversarial probe prompt</description>
+      <implementation>
+        <item>adversary_llm_call(i) uses same provider, different prompt</item>
+        <item>Prompt focuses on: exploit search, jailbreak patterns, epistemic attack surface</item>
+        <item>Higher temperature for creative attack discovery</item>
+      </implementation>
+    </ac>
+    <ac id="3" title="Arbitration Rule Enforcement">
+      <description>promote(i) = True ↔ analyst_ok ∧ adversary_ok</description>
+    </ac>
+    <ac id="4" title="Audit Safety">
+      <description>No raw prompts or responses stored in audit trail</description>
+    </ac>
+    <ac id="5" title="Graceful Degradation">
+      <description>Provider failure → FREEZE (not crash)</description>
+    </ac>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1">Design Analyst Prompt</task>
+    <task id="2">Implement Analyst LLM Call</task>
+    <task id="3">Design Adversary Prompt</task>
+    <task id="4">Implement Adversary LLM Call</task>
+    <task id="5">Implement Graceful Degradation</task>
+    <task id="6">Unit Tests (pass-pass, pass-fail, fail-pass, fail-fail, provider down)</task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-5-knowledge-sovereignty.md" title="Parent Story" section="AC3: Dual-Persona Arbitration">
+        Defines the mathematical rule: Promotion(i) = allowed ⟺ f_A(i) = 1 ∧ f_D(i) = 1
+      </doc>
+      <doc path="docs/status/tech-debt.md" title="Tech Debt Registry" section="11-5.1">
+        Documents placeholder heuristics that need LLM replacement
+      </doc>
+    </docs>
+    <code>
+      <file path="src/jarvis/knowledge/arbitration.py" kind="service" symbol="DualPersonaArbitrator" lines="178-259" reason="Contains placeholder heuristics to replace with LLM calls"/>
+      <file path="src/jarvis/knowledge/arbitration.py" kind="service" symbol="_analyst_evaluate" reason="Target method for Analyst LLM integration"/>
+      <file path="src/jarvis/knowledge/arbitration.py" kind="service" symbol="_adversary_evaluate" reason="Target method for Adversary LLM integration"/>
+      <file path="tests/unit/test_arbitration.py" kind="test" reason="Existing tests to extend with LLM scenarios"/>
+    </code>
+    <dependencies>
+      <python>
+        <package>structlog</package>
+        <package>pydantic</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="LLM Provider" kind="existing">
+      <signature>async def complete(prompt: str, temperature: float = 0.7) -> str</signature>
+      <path>src/jarvis/providers/llm.py</path>
+    </interface>
+    <interface name="ArbitrationResult" kind="dataclass">
+      <signature>@dataclass ArbitrationResult: approved: bool, summary: str, analyst_verdict: bool, adversary_verdict: bool</signature>
+      <path>src/jarvis/knowledge/arbitration.py</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="security">Never log raw LLM prompts or responses to audit trail</constraint>
+    <constraint type="architecture">Use existing LLM provider interface, don't create new one</constraint>
+    <constraint type="testing">Must cover all 4 verdict combinations + provider failure</constraint>
+    <constraint type="purity">Persona evaluation functions must be pure (no side effects)</constraint>
+  </constraints>
+
+  <tests>
+    <standards>pytest framework, structlog for logging, mock LLM provider in tests</standards>
+    <locations>tests/unit/test_arbitration.py</locations>
+    <ideas>
+      <idea ac="1">Test analyst returns coherent verdict for valid knowledge</idea>
+      <idea ac="2">Test adversary detects obvious jailbreak patterns</idea>
+      <idea ac="3">Test promotion allowed only when both pass</idea>
+      <idea ac="4">Test audit events contain only safe fields</idea>
+      <idea ac="5">Test graceful degradation on provider timeout</idea>
+    </ideas>
+  </tests>
+</story-context>

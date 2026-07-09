@@ -1,0 +1,107 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>Query Command &amp; Response Envelope</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow (simulated)</generator>
+    <sourceStoryPath>docs/epics.md#Story-3.1-Query-Command-&amp;-Response-Envelope</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a knowledge worker</asA>
+    <iWant>a `jarvis query "question"` command</iWant>
+    <soThat>I can ask anything and receive structured answers with metadata</soThat>
+    <tasks>
+      - Implement Typer-based CLI entrypoint `jarvis query "question"` (CLI + module form).
+      - Wire query command into JARVIS CLI main app.
+      - Implement RAG loop: embed query, search Qdrant, build context block.
+      - Call selected LLM via `call_llm` with provider routing.
+      - Return human-readable answer with citations in CLI.
+      - Add JSON response envelope (`--json-output`) for MCP / tool integrations.
+      - Include chunk IDs / metadata for linking back to workspace files.
+      - Ensure error handling for empty results and provider failures.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given memories exist, When the user runs `jarvis query "question"`, Then the system embeds the query, fetches top-k context, calls the selected LLM, and returns text with cited sources.
+    2. Given the CLI query succeeds, When called with `--json-output`, Then the response includes a JSON envelope with `query`, `response`, `sources[]`, and `metadata` matching the PRD shape.
+    3. Given chunk metadata in Qdrant, When results are returned, Then each source entry includes enough information (source_file, domain, optional chunk_id) to map back to workspace files.
+    4. Given provider routing is configured, When `provider="auto"` is used, Then the system prefers free/cheap providers and falls back to others only when necessary.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3 — Story 3.1</title>
+        <section>Story 3.1: Query Command &amp; Response Envelope</section>
+        <snippet>
+As a knowledge worker,
+I want a `jarvis query "question"` command,
+So that I can ask anything and receive structured answers with metadata.
+
+Given memories exist,
+When the user queries via CLI or MCP,
+Then the system embeds the query, fetches top-k context, calls the selected LLM, and returns text + cited sources,
+And results stream progressively to the terminal.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>Query Response JSON Schema</section>
+        <snippet>
+Query Response:
+{
+  "query": "...",
+  "response": "...",
+  "sources": [
+    {
+      "content": "...",
+      "source_file": "./docs/postgres-notes.md",
+      "relevance_score": 0.92,
+      "chunk_id": "abc123"
+    }
+  ],
+  "metadata": {
+    "llm_provider": "openrouter",
+    "model": "meta-llama/llama-3.1-70b",
+    "total_tokens": 1250,
+    "cost_usd": 0.0
+  }
+}
+        </snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>module</kind>
+        <symbol>app, query</symbol>
+        <reason>Implements the RAG query CLI command for Story 3.1, including Typer wiring, context construction, LLM call, human output, and JSON envelope.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/main.py</path>
+        <kind>module</kind>
+        <symbol>app</symbol>
+        <reason>Top-level Typer app; wires `query_cli.query` into the main CLI so `python -m jarvis.cli.main query` is available.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>module</kind>
+        <symbol>search_memory, SearchResult</symbol>
+        <reason>Provides semantic search over Qdrant; used by the query command to fetch top-k context chunks with metadata.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/llm/client.py</path>
+        <kind>module</kind>
+        <symbol>call_llm, LLMResponse</symbol>
+        <reason>LLM client and provider router used by the query command to call the selected model and track cost.</reason>
+      </artifact>
+    </code>
+  </artifacts>
+</story-context>
+

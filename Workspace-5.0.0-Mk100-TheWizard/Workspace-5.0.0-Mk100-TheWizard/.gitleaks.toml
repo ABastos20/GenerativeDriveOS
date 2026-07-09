@@ -1,0 +1,10 @@
+title = "Repository gitleaks config"
+
+# Allowlist: ignore generated manifest hashes in the .bmad config directory.
+# These files contain deterministic hex digests (file hashes) used by BMAD internals
+# and are safe to keep in the repo, but they trigger generic key rules in some
+# gitleaks rule sets. We explicitly ignore those paths here.
+
+[allowlist]
+description = "Ignore BMAD manifest hashes"
+paths = ["^\\.bmad/_cfg/.*"]

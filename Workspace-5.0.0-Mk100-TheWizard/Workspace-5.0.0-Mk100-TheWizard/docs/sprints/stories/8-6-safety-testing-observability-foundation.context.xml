@@ -1,0 +1,78 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>6</storyId>
+    <title>Safety, Testing & Observability Foundation</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-6-safety-testing-observability-foundation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis Architect preparing for autonomy</asA>
+    <iWant>a robust safety layer (Rollback, Automated Testing, Observability)</iWant>
+    <soThat>Jarvis cannot brick itself when it starts modifying its own code or configuration</soThat>
+    <tasks>
+- [ ] Task 1: Implement Safe Mode (AC: 1)
+- [ ] Task 2: Implement Rollback (AC: 2)
+- [ ] Task 3: Setup Pytest (AC: 3)
+- [ ] Task 4: Implement Health Dashboard (AC: 4)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Safe Mode Boot: `jarvis start --safe` loads minimal config (no agents, read-only memory).
+2. Rollback Mechanism: `jarvis snapshot create/restore <name>` and auto-rollback on failure.
+3. Pytest Integration: `tests/integration/` suite covering memory, retrieval, and planning.
+4. Observability Dashboard: `/admin/health` endpoint returning Vector Index Health, Planner Stats, System Uptime.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-8-planning.md</path>
+        <title>Epic 8 Planning</title>
+        <section>Story 8-6</section>
+        <snippet>Goal: The "Immune System" for Epic 8. Deliverables: Safe Mode, Rollback, Pytest Suite, Admin Dashboard.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>src/jarvis/api/main.py</path>
+        <kind>file</kind>
+        <symbol>app</symbol>
+        <lines>1-100</lines>
+        <reason>Entry point for Safe Mode implementation.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <dep>pytest</dep>
+      <dep>httpx</dep>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Rollback must be atomic.
+    - Safe Mode must not depend on external services (except DB).
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>SnapshotManager</name>
+      <kind>Class</kind>
+      <signature>create_snapshot(name: str) -> str</signature>
+      <path>src/jarvis/core/safety/snapshot.py</path>
+    </interface>
+    <interface>
+      <name>HealthMonitor</name>
+      <kind>Class</kind>
+      <signature>get_status() -> HealthStatus</signature>
+      <path>src/jarvis/core/safety/health.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Integration tests using Pytest and TestClient.</standards>
+    <locations>tests/integration/</locations>
+    <ideas>Simulate a crash and verify auto-rollback.</ideas>
+  </tests>
+</story-context>

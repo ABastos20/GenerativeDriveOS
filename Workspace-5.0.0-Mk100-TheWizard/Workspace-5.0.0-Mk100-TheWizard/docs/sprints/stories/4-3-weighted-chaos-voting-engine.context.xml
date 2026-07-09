@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/4-3" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.3</storyId>
+    <title>Weighted Chaos Voting Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-03T15:30:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow - Antigravity</generator>
+    <sourceStoryPath>docs/sprints/stories/4-3-weighted-chaos-voting-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>decision maker</asA>
+    <iWant>weighted chaos voting to select the final response</iWant>
+    <soThat>consensus reflects persona influence</soThat>
+    <tasks>
+      - Task 1: Implement weighted scoring algorithm
+      - Task 2: Persist vote metadata for analytics
+      - Task 3: Display persona contributions in response
+      - Task 4: Integrate voting with parallel invocation
+      - Task 5: Tests
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given persona weights sum to 100%, When agents finish, Then system computes weighted scores, displays contributions, selects highest scoring answer, And ties can optionally surface multiple responses.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" section="Consensus" snippet="40/20/10/30 default weights (line 109). Consensus module location." />
+      <doc path="docs/epics.md" section="Story 4.3" snippet="Weighted scoring, vote metadata persistence, analytics prep (lines 305-318)" />
+      <doc path="docs/sprints/stories/4-2-parallel-agent-invocation.md" section="Notes" snippet="PersonaResponse objects from parallel invocation - input to voting" />
+    </docs>
+    <code>
+      <artifact path="src/jarvis/database/models.py" kind="model" symbol="Message" lines="*" reason="Extend with voting_metadata JSONB column for vote storage" />
+      <artifact path="src/jarvis/agents/orchestrator.py" kind="module" symbol="PersonaRegistry" lines="*" reason="Wire consensus module after parallel invocation" />
+    </code>
+    <dependencies>
+      <python>
+        <package name="structlog" version="latest" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Weights must sum to 1.00 (±0.005 tolerance per Story 4.1)
+    - Handle ties: if scores within 5% threshold, return multiple responses
+    - Store vote metadata as JSONB for Story 4.5 analytics
+    - Log all voting decisions with structured logging
+  </constraints>
+
+  <interfaces>
+    <interface name="weighted_chaos_vote" kind="function" signature="def weighted_chaos_vote(responses: List[PersonaResponse]) -> VotingResult" path="src/jarvis/agents/consensus.py" />
+    <interface name="VotingResult" kind="dataclass" signature="@dataclass VotingResult: winner: str; scores: Dict[str, float]; ties: List[str]" path="src/jarvis/agents/consensus.py" />
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest. Test voting with 3-4 personas. Test tie handling. Test single persona case (100% weight). Verify metadata persistence.
+    </standards>
+    <locations>
+      tests/unit/agents/test_consensus.py
+      tests/integration/agents/test_voting_e2e.py
+    </locations>
+    <ideas>
+      - Test weighted voting with 40/30/30 weights (clear winner)
+      - Test tie case (two personas with 50/50 weights)
+      - Test metadata JSON structure in database
+    </ideas>
+  </tests>
+</story-context>

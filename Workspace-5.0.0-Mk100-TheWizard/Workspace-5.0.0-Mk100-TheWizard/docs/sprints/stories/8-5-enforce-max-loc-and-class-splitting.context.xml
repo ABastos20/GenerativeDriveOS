@@ -1,0 +1,73 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>5</storyId>
+    <title>Enforce Max LOC and Class Splitting</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-5-enforce-max-loc-and-class-splitting.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis Architect ensuring long-term maintainability</asA>
+    <iWant>automated enforcement of code quality metrics (Max 800 LOC, Max 20 methods)</iWant>
+    <soThat>the codebase remains readable and modular as the agent writes its own code</soThat>
+    <tasks>
+- [ ] Task 1: Create Lint Script (AC: 1, 2, 3)
+- [ ] Task 2: Configure Exclusions (AC: 2)
+- [ ] Task 3: Setup Pre-Commit Hook (AC: 4)
+- [ ] Task 4: Initial Scan & Plan (AC: 5)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Linter Script: `scripts/lint_check.py` created.
+2. LOC Rule: Fails if any file > 800 lines (excluding generated/legacy if marked).
+3. Complexity Rule: Fails if any class > 20 methods or Cyclomatic Complexity > 15.
+4. Pre-Commit Hook: Git hook or CI step to run this check.
+5. Refactoring Plan: Identify current violators (e.g., `chat.py` might be close) and split them.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-8-planning.md</path>
+        <title>Epic 8 Planning</title>
+        <section>Story 8-5</section>
+        <snippet>Goal: Prevent "God Classes" and unmaintainable code. Rules: Max 800 LOC per file. Max 20 methods per class.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>file</kind>
+        <symbol>chat.py</symbol>
+        <lines>1-1050</lines>
+        <reason>Likely violator of LOC rule, candidate for splitting.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <dep>radon</dep>
+      <dep>mccabe</dep>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Must not break existing build pipeline.
+    - Must allow exclusions for generated code.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>LintCheck</name>
+      <kind>CLI</kind>
+      <signature>python scripts/lint_check.py [path]</signature>
+      <path>scripts/lint_check.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Unit test the linter logic using sample files.</standards>
+    <locations>tests/unit/test_lint.py</locations>
+    <ideas>Create a file with 801 lines and assert failure.</ideas>
+  </tests>
+</story-context>

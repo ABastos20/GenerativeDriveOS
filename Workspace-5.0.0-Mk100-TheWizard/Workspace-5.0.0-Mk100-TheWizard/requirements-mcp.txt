@@ -1,0 +1,6 @@
+# MCP server and agentic tool dependencies
+fastapi
+uvicorn
+httpx
+pydantic
+python-dotenv

@@ -1,0 +1,47 @@
+<context>
+    <schema>
+        <table name="conversation_primary_docs">
+            <description>
+                Stores the "dominant" document for a conversation to ensure UI persistence.
+                One row per conversation (upserted).
+            </description>
+            <columns>
+                <column name="id" type="UUID" primary_key="true">Unique identifier</column>
+                <column name="conversation_id" type="UUID" foreign_key="conversations.id">
+                    The conversation this primary doc belongs to.
+                    Unique constraint ensures 1:1 relationship.
+                </column>
+                <column name="doc_key" type="String" nullable="false">
+                    The unique key of the document (e.g., "file::memory.core.md").
+                </column>
+                <column name="source_file" type="String" nullable="true">
+                    The absolute path or filename of the source file.
+                </column>
+                <column name="domain" type="String" nullable="true">
+                    The knowledge domain of the document.
+                </column>
+                <column name="first_seen_at" type="DateTime" default="now()">
+                    When this document was first selected as primary for this conversation.
+                </column>
+                <column name="last_used_at" type="DateTime" default="now()" on_update="now()">
+                    When this document was last resurfaced or re-selected.
+                </column>
+            </columns>
+            <indexes>
+                <index columns="conversation_id" unique="true">
+                    Ensures fast lookup by conversation and enforces 1:1 mapping.
+                </index>
+            </indexes>
+        </table>
+    </schema>
+    <logic>
+        <component name="PrimaryDocSelector">
+            <description>Selects the primary document from search results.</description>
+            <rules>
+                <rule>If RetrievalMode == META, prefer 'memory.core.md'.</rule>
+                <rule>If RetrievalMode == NORMAL, prefer top result if Score > 0.01.</rule>
+                <rule>If Explicit Intent ("retrieve that file"), prefer Stored Doc unless New Score > 0.6.</rule>
+            </rules>
+        </component>
+    </logic>
+</context>

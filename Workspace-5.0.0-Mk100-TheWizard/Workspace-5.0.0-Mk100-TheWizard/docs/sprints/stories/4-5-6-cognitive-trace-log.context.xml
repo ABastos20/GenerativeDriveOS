@@ -1,0 +1,129 @@
+<story-context id="4-5-6-cognitive-trace-log" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.6</storyId>
+    <title>Cognitive Trace Log</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-6-cognitive-trace-log.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis developer debugging query processing</asA>
+    <iWant>a complete cognitive trace capturing the full query lifecycle</iWant>
+    <soThat>I can replay, analyze, and understand every decision made during query handling</soThat>
+    <tasks>
+      <task id="1">Create src/jarvis/arches/trace.py with CognitiveTrace dataclass</task>
+      <task id="2">Create cognitive_traces PostgreSQL table with JSONB trace_data</task>
+      <task id="3">Implement log_cognitive_trace() and replay_cognitive_trace() functions</task>
+      <task id="4">Create src/jarvis/cli/trace.py with list, replay, export commands</task>
+      <task id="5">Add GET /api/traces/{trace_id} endpoint</task>
+      <task id="6">Capture trace at end of query processing and include trace_id in response</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">CognitiveTrace dataclass captures: inputs, plan, memory, agents, voting, output, metadata</criterion>
+    <criterion id="2">Traces persisted to cognitive_traces PostgreSQL table with JSONB trace_data</criterion>
+    <criterion id="3">CLI commands: jarvis trace list, jarvis trace replay, jarvis trace export</criterion>
+    <criterion id="4">API endpoint: GET /api/traces/{trace_id} returns full trace</criterion>
+    <criterion id="5">Traces include timing: total_latency_ms, created_at</criterion>
+    <criterion id="6">Trace IDs linkable from chat responses for debugging</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.6: Cognitive Trace Log</section>
+        <snippet>Structured trace format for full query lifecycle observability. Enable debugging and analysis.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/arches/controller.py</path>
+        <kind>service</kind>
+        <symbol>ARCHESController</symbol>
+        <reason>Controller provides session data for trace (depends on 4.5.1)</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>model</kind>
+        <symbol>Base</symbol>
+        <reason>Add CognitiveTraceLog model</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/main.py</path>
+        <kind>command</kind>
+        <symbol>app</symbol>
+        <reason>Register trace command group</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <reason>Capture and return trace_id</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="dataclasses" version="stdlib" reason="CognitiveTrace dataclass"/>
+        <package name="sqlalchemy" version=">=2.0" reason="Database model"/>
+        <package name="alembic" version=">=1.13" reason="Migration for cognitive_traces table"/>
+        <package name="typer" version=">=0.9" reason="CLI commands"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Traces may be large - consider compression for trace_data</constraint>
+    <constraint>Consider TTL or archival strategy for old traces</constraint>
+    <constraint>Traces contain user queries - handle privacy appropriately</constraint>
+    <constraint>trace_id should be included in chat response for debugging</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CognitiveTrace</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass CognitiveTrace: trace_id, session_id, query, conversation_history, domains_requested, plan_state, research_triggered, chunks_retrieved, chunk_scores, freshness_scores, diversity_mode, agents_invoked, agent_responses, voting_result, winner_persona, disagreement_score, final_answer, sources_cited, total_latency_ms, created_at</signature>
+      <path>src/jarvis/arches/trace.py</path>
+    </interface>
+    <interface>
+      <name>log_cognitive_trace</name>
+      <kind>function</kind>
+      <signature>def log_cognitive_trace(trace: CognitiveTrace) -> None</signature>
+      <path>src/jarvis/arches/trace.py</path>
+    </interface>
+    <interface>
+      <name>replay_cognitive_trace</name>
+      <kind>function</kind>
+      <signature>def replay_cognitive_trace(trace_id: str) -> CognitiveTrace</signature>
+      <path>src/jarvis/arches/trace.py</path>
+    </interface>
+    <interface>
+      <name>CognitiveTraceLog</name>
+      <kind>model</kind>
+      <signature>class CognitiveTraceLog(Base): id, trace_id, session_id, query, trace_data (JSONB), created_at</signature>
+      <path>src/jarvis/database/models.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Mock database for unit tests. Test full trace capture in integration tests.</standards>
+    <locations>
+      <location>tests/unit/arches/test_trace_logging.py</location>
+      <location>tests/integration/arches/test_trace_replay.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test CognitiveTrace dataclass fields</idea>
+      <idea ac="2">Test DB persistence and retrieval</idea>
+      <idea ac="3">Test CLI commands: list, replay, export</idea>
+      <idea ac="4">Test API endpoint returns correct trace</idea>
+      <idea ac="5">Test timing fields are populated</idea>
+      <idea ac="6">Test trace_id included in chat response</idea>
+    </ideas>
+  </tests>
+</story-context>

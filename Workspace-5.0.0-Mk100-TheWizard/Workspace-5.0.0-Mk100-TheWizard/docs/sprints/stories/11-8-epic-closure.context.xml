@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story_context>
+  <metadata>
+    <story_id>11-8</story_id>
+    <story_name>Epic 11 Closure &amp; Activation of Epic 8-8</story_name>
+    <epic>11 - Mk100 "The Wizard"</epic>
+    <priority>CRITICAL</priority>
+    <type>Governance / Integration / Epic Finalisation</type>
+    <depends_on>11-1, 11-2, 11-3, 11-4, 11-5, 11-5.1, 11-5.2, 11-5.3, 11-5.4, 11-6, 11-7</depends_on>
+    <unlocks>8-8</unlocks>
+  </metadata>
+
+  <purpose>
+    Formal verification and activation checklist that closes Epic 11 and unlocks Epic 8-8 (Dormant Knowledge / LLM Governance).
+    Toggles system into Sovereign Knowledge Mode where all Epic 11 invariants become mandatory.
+  </purpose>
+
+  <key_concepts>
+    <concept name="Sovereign Mode">
+      Boolean flag that when enabled enforces all Locks 1-7 as mandatory.
+      Effects: persona arbitration required, usage policy enforced, contradiction penalties active,
+      all audit sinks receive events, provenance freeze rules active, BMAD memory strictness enabled.
+    </concept>
+    <concept name="Lock Verification">
+      Formal validation that each of the 7 locks is operational and enforced.
+      Lock 1: LLM Sandboxing, Lock 2: Math Sovereignty, Lock 3: Audit Logs,
+      Lock 4: Capability Index, Lock 5: Semantic Firewall, Lock 6: C-IDS,
+      Lock 7: Epistemic Sovereignty
+    </concept>
+    <concept name="Epic 8-8 Activation">
+      Epic 8-8 (Dormant Knowledge / LLM Governance) cannot start until 11-8 passes.
+      It relies on: Trust Engine, Dual personas, Audit sinks, Usage policy, Tier lattice.
+    </concept>
+  </key_concepts>
+
+  <acceptance_criteria>
+    <ac id="1" description="All prior 11-x stories marked complete with verified tests"/>
+    <ac id="2" description="Sovereign Mode Switch created and tested (enforces Locks 1-7)"/>
+    <ac id="3" description="Knowledge Tiers K0-K4 validated in ingestion, usage, BMAD"/>
+    <ac id="4" description="Provenance Integrity CLI implemented (jarvis provenance verify)"/>
+    <ac id="5" description="Dual-Persona freeze semantics verified across pipelines"/>
+    <ac id="6" description="Trust Engine decay and refresh validated deterministically"/>
+    <ac id="7" description="All sinks tested in isolation and fan-out mode"/>
+    <ac id="8" description="Epic 8-8 activation only allowed once AC1-AC7 pass"/>
+    <ac id="9" description="Integration report generated and documented"/>
+  </acceptance_criteria>
+
+  <files_to_create>
+    <file path="config/sovereign_mode.py" purpose="Sovereign mode configuration"/>
+    <file path="src/jarvis/cli/provenance.py" purpose="Provenance verification CLI"/>
+    <file path=".bmad/bmm/env/sovereign.json" purpose="Epic 11 stability declaration"/>
+  </files_to_create>
+
+  <files_to_modify>
+    <file path="docs/sprints/sprint-status.yaml" reason="Add 11-8 and 8-8 entries"/>
+  </files_to_modify>
+
+  <existing_code_context>
+    <file path="src/jarvis/knowledge/tiers.py" relevance="Tier lattice K0-K4 definitions"/>
+    <file path="src/jarvis/knowledge/arbitration.py" relevance="Dual-persona arbitration with LLM"/>
+    <file path="src/jarvis/knowledge/audit.py" relevance="EpistemicAuditLog semantic core"/>
+    <file path="src/jarvis/knowledge/audit_sinks.py" relevance="Sink implementations"/>
+    <file path="src/jarvis/knowledge/trust_engine.py" relevance="Trust decay formula T_s"/>
+    <file path="src/jarvis/knowledge/usage_policy.py" relevance="Usage policy enforcement"/>
+    <file path="src/jarvis/database/models.py" relevance="EpistemicEventModel for postgres sink"/>
+    <file path="src/jarvis/knowledge/provenance.py" relevance="Provenance ledger for hash chain"/>
+  </existing_code_context>
+
+  <master_checklist>
+    <section name="Lock 1-3 (Cognitive Core)">
+      <item>LLM sandboxed - no direct mutations</item>
+      <item>Math sovereignty - goal = argmax formula</item>
+      <item>All actions have audit telemetry</item>
+    </section>
+    <section name="Lock 4 (Capability Index)">
+      <item>Registry default = deny</item>
+      <item>Enforcement real - no bypass</item>
+      <item>Governance binding - changes require votes</item>
+    </section>
+    <section name="Lock 5 (Semantic Firewall)">
+      <item>Prompt safety patterns active</item>
+      <item>Deny = never reaches provider</item>
+      <item>Narrative-only persona enforced</item>
+    </section>
+    <section name="Lock 6 (C-IDS Emergent)">
+      <item>Code index functional</item>
+      <item>Abuse patterns defined</item>
+      <item>Intent drift detection active</item>
+    </section>
+    <section name="Lock 7 (Epistemic Sovereignty)">
+      <item>Evidence ledger with T_s formula</item>
+      <item>Answer trust exposed</item>
+      <item>Knowledge graph operational</item>
+    </section>
+  </master_checklist>
+
+  <ship_criteria>
+    <criterion>All Locks 1-5 validated</criterion>
+    <criterion>Lock 6 operative (alerts visible)</criterion>
+    <criterion>Trust mathematical exposed</criterion>
+    <criterion>Ingestion with provenance</criterion>
+    <criterion>Knowledge with lifecycle</criterion>
+    <criterion>No direct execution possible</criterion>
+  </ship_criteria>
+</story_context>

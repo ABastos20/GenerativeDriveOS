@@ -1,0 +1,6 @@
+{
+  "message": "What is the variable grounding system?",
+  "auto_grounding": true,
+  "show_confidence": true,
+  "k": 10
+}

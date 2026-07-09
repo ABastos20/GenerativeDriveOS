@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <metadata>
+    <story-id>11-5.3</story-id>
+    <title>Structured Logging Sink (Stdout/structlog)</title>
+    <epic>11 – Mk100 "The Wizard"</epic>
+    <parent>11-5 (Knowledge Sovereignty)</parent>
+    <depends-on>11-5.2 (Sink Architecture)</depends-on>
+    <priority>MEDIUM</priority>
+    <type>Tech Debt Resolution</type>
+    <generated>2025-12-10T19:28:00Z</generated>
+  </metadata>
+
+  <user-story>
+    <as-a>DevOps engineer</as-a>
+    <i-want>epistemic audit events streamed as structured JSON logs</i-want>
+    <so-that>I can ingest them into Graylog/ELK/Kinesis for monitoring and alerting</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <ac id="1" title="StdoutJsonSink Implementation">
+      <description>Events written as single JSON line to stdout via structlog</description>
+      <implementation>
+        <item>Create StdoutJsonSink in audit_sinks.py</item>
+        <item>Use structlog for JSON formatting</item>
+        <item>Support content redaction flag</item>
+      </implementation>
+    </ac>
+    <ac id="2" title="Content Redaction (Security)">
+      <description>PII and raw content stripped from logs</description>
+      <implementation>
+        <item>Implement _redact() method</item>
+        <item>Default redact_content=True</item>
+        <item>Log only safe fields (IDs, tiers, types, timestamps)</item>
+      </implementation>
+    </ac>
+    <ac id="3" title="Flat JSON Format">
+      <description>Output is flat, JSON-serializable dict</description>
+      <implementation>
+        <item>Serialize datetime as ISO8601</item>
+        <item>Serialize UUIDs as strings</item>
+        <item>Serialize enums as .value</item>
+      </implementation>
+    </ac>
+    <ac id="4" title="Multi-Sink Compatibility">
+      <description>StdoutJsonSink works alongside InMemorySink</description>
+    </ac>
+    <ac id="5" title="Configuration">
+      <description>Support EPISTEMIC_AUDIT_SINKS environment variable</description>
+    </ac>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1">Implement StdoutJsonSink (AC: #1)</task>
+    <task id="2">Implement Redaction (AC: #2)</task>
+    <task id="3">Flat JSON Serialization (AC: #3)</task>
+    <task id="4">Multi-Sink Tests (AC: #4)</task>
+    <task id="5">Environment Config (AC: #5)</task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-5.2-audit-sink-architecture.md" title="Dependency" section="Sink Protocol">
+        Defines EpistemicAuditSink Protocol this sink must implement
+      </doc>
+    </docs>
+    <code>
+      <file path="src/jarvis/knowledge/audit_sinks.py" kind="module" reason="Add StdoutJsonSink implementation"/>
+      <file path="src/jarvis/knowledge/audit.py" kind="service" symbol="EpistemicAuditLog" reason="Add factory function"/>
+    </code>
+    <dependencies>
+      <python>
+        <package>structlog</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="StdoutJsonSink" kind="class">
+      <signature>
+class StdoutJsonSink:
+    def __init__(self, redact_content: bool = True): ...
+    def handle_event(self, event: EpistemicEvent) -> None: ...
+    def _redact(self, data: dict) -> dict: ...
+      </signature>
+      <path>src/jarvis/knowledge/audit_sinks.py</path>
+    </interface>
+    <interface name="create_audit_log_from_env" kind="factory">
+      <signature>def create_audit_log_from_env() -> EpistemicAuditLog</signature>
+      <path>src/jarvis/knowledge/audit.py</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="security">Never log raw document text, LLM prompts, or PII</constraint>
+    <constraint type="format">JSON lines format (one event per line)</constraint>
+    <constraint type="compatibility">Must work with Graylog GELF and ELK Filebeat</constraint>
+    <constraint type="dependency">Requires 11-5.2 Sink Architecture</constraint>
+  </constraints>
+
+  <tests>
+    <standards>pytest framework, capture stdout for verification</standards>
+    <locations>tests/unit/test_audit_sinks.py</locations>
+    <ideas>
+      <idea ac="1">Test event produces valid JSON line</idea>
+      <idea ac="2">Test redaction removes sensitive fields</idea>
+      <idea ac="3">Test datetime/UUID/enum serialization</idea>
+      <idea ac="4">Test multi-sink receives all events</idea>
+      <idea ac="5">Test env var configuration</idea>
+    </ideas>
+  </tests>
+
+  <integration-guides>
+    <graylog>
+      <description>Docker sidecar with GELF driver</description>
+      <config>
+logging:
+  driver: gelf
+  options:
+    gelf-address: "udp://graylog:12201"
+      </config>
+    </graylog>
+    <elk>
+      <description>Filebeat for container logs</description>
+      <config>
+filebeat.inputs:
+  - type: container
+    json.keys_under_root: true
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "jarvis-epistemic-%{+yyyy.MM.dd}"
+      </config>
+    </elk>
+  </integration-guides>
+</story-context>

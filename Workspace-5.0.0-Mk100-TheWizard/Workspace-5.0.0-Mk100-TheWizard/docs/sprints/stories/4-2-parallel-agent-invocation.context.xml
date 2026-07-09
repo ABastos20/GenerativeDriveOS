@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/4-2" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.2</storyId>
+    <title>Parallel Agent Invocation</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-03T15:30:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow - Antigravity</generator>
+    <sourceStoryPath>docs/sprints/stories/4-2-parallel-agent-invocation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>researcher</asA>
+    <iWant>each persona to run independently in parallel</iWant>
+    <soThat>consensus latency stays low even with multiple agents</soThat>
+    <tasks>
+      - Task 1: Implement async agent invocation in orchestrator
+      - Task 2: Add streaming response collection  
+      - Task 3: Integrate rate limiting from Epic 5 providers
+      - Task 4: Add CLI flag for agent selection
+      - Task 5: Tests (async, partial failure, e2e)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given query with --agents all, When execution starts, Then asynchronous calls invoke each persona with system prompt and weight, And partial responses stream individually before aggregation.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" section="Agents" snippet="Council of Ricks structure, orchestrator pattern, async execution (lines 105-111)" />
+      <doc path="docs/epics.md" section="Story 4.2" snippet="Parallel invocation requirements: asyncio tasks, shared context, rate limits (lines 290-303)" />
+      <doc path="docs/sprints/stories/4-1-persona-registry-configuration-cli.md" section="Completion Notes" snippet="PersonaRegistry.get_active_personas() returns List[PersonaConfig]. Thread-safe singleton pattern." />
+    </docs>
+    <code>
+      <artifact path="src/jarvis/agents/orchestrator.py" kind="module" symbol="PersonaRegistry" lines="1-177" reason="Hot-reload registry from Story 4.1 - extend with async invocation methods" />
+      <artifact path="src/jarvis/agents/personas.py" kind="schema" symbol="PersonaConfig" lines="1-68" reason="Persona dataclass with name, system_prompt, weight fields for invocation" />
+      <artifact path="src/jarvis/core/llm_router.py" kind="service" symbol="LLMRouter" lines="*" reason="Provider routing for LLM calls - ensure async-compatible" />
+      <artifact path="src/jarvis/cli/query.py" kind="cli" symbol="query_command" lines="*" reason="Extend with --agents flag for persona selection" />
+    </code>
+    <dependencies>
+      <python>
+        <package name="asyncio" version="stdlib" />
+        <package name="structlog" version="latest" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use asyncio.gather() for parallel persona invocation (non-blocking)
+    - Share single RAG context across all personas (don't re-embed query per persona)
+    - Handle partial failures gracefully (return_exceptions=True)
+    - Thread-safe access to PersonaRegistry (from Story 4.1 threading design)
+    - Respect rate limits from Epic 5 providers (prep for integration with Stories 5.1-5.3)
+    - Log all persona invocations with structured logging (structlog)
+  </constraints>
+
+  <interfaces>
+    <interface name="invoke_personas_parallel" kind="async_function" signature="async def invoke_personas_parallel(personas: List[PersonaConfig], context: str, query: str) -> List[PersonaResponse]" path="src/jarvis/agents/orchestrator.py" />
+    <interface name="PersonaResponse" kind="dataclass" signature="@dataclass PersonaResponse: persona: PersonaConfig; response: str; sources: List[str]; error: Optional[Exception]" path="src/jarvis/agents/orchestrator.py" />
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest with async fixtures (@pytest.mark.asyncio). Mock LLM provider calls. Test parallel execution (3+ personas). Test partial failure handling (1 of N fails). Verify response collection and persona metadata attachment.
+    </standards>
+    <locations>
+      tests/unit/agents/test_parallel_invocation.py
+      tests/integration/agents/test_parallel_query_e2e.py
+    </locations>
+    <ideas>
+      - Test async invocation with 3 mocked personas (verify all run in parallel)
+      - Test partial failure (persona 2 fails, others succeed, results include error)
+      - Test --agents flag validation (valid/invalid persona names)
+      - Integration test: end-to-end query with --agents all
+      - Performance test: verify parallel is faster than sequential
+    </ideas>
+  </tests>
+</story-context>

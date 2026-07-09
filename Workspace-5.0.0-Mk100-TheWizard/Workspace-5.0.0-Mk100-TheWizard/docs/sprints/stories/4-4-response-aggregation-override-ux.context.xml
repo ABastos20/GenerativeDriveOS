@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/4-4" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.4</storyId>
+    <title>Response Aggregation & Override UX</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-03T15:30:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow - Antigravity</generator>
+    <sourceStoryPath>docs/sprints/stories/4-4-response-aggregation-override-ux.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>advanced user</asA>
+    <iWant>to review all agent responses and override the choice</iWant>
+    <soThat>I can pick a different persona answer when needed</soThat>
+    <tasks>
+      - Task 1: Display all persona responses in aggregated format
+      - Task 2: Implement --select flag for manual override
+      - Task 3: Log override decisions with metadata
+      - Task 4: Add toggles for CLI and MCP
+      - Task 5: Tests
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given consensus output shown, When user runs `jarvis query --select Supportive`, Then CLI re-renders Supportive Rick answer with sources, And decision logged with override metadata.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" section="CLI" snippet="Typer CLI patterns, MCP integration (lines 113-130)" />
+      <doc path="docs/epics.md" section="Story 4.4" snippet="Override UX requirements, metadata storage (lines 320-333)" />
+      <doc path="docs/sprints/stories/4-3-weighted-chaos-voting-engine.md" section="Notes" snippet="VotingResult provides scores and winner - display and allow override" />
+    </docs>
+    <code>
+      <artifact path="src/jarvis/cli/query.py" kind="cli" symbol="query_command" lines="*" reason="Add --show-all and --select flags" />
+      <artifact path="src/jarvis/mcp/tools.py" kind="mcp" symbol="query_tool" lines="*" reason="Extend MCP query tool with override parameters" />
+      <artifact path="src/jarvis/agents/orchestrator.py" kind="module" lines="*" reason="Store all persona responses for override capability" />
+    </code>
+   <dependencies>
+      <python>
+        <package name="rich" version="latest" />
+        <package name="typer" version="latest" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - All persona responses must be stored (not just winner) for override
+    - Validate --select persona name against active personas
+    - Store override metadata in voting_metadata JSONB (extends Story 4.3 schema)
+    - CLI output must be readable with rich formatting
+  </constraints>
+
+  <interfaces>
+    <interface name="aggregate_responses" kind="function" signature="def aggregate_responses(responses: List[PersonaResponse], voting_result: VotingResult) -> str" path="src/jarvis/agents/aggregator.py" />
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest with rich output capture. Test --show-all displays all responses. Test --select with valid/invalid names. Verify override metadata persistence.
+    </standards>
+    <locations>
+      tests/unit/agents/test_aggregator.py
+      tests/unit/cli/test_query_override.py
+      tests/integration/agents/test_override_e2e.py
+    </locations>
+    <ideas>
+      - Test aggregated format displays 4 personas correctly
+      - Test --select validation (invalid persona name → error)
+      - Test override metadata stored in database
+      - Integration test: query → --show-all → --select "Supportive Rick"
+    </ideas>
+  </tests>
+</story-context>

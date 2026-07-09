@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "steps": 10,
+    "seed": 42
+  },
+  "users": [
+    {
+      "user_id": "1303306f-5de2-4f03-a3f0-dddefffceab7",
+      "tier": 1,
+      "trust": 0.4606540589620056
+    },
+    {
+      "user_id": "a1308af2-8c20-458c-beb9-c5d303bb208c",
+      "tier": 1,
+      "trust": 0.3477350361126346
+    },
+    {
+      "user_id": "3ecc03c3-172e-4d78-bbed-eb814202025f",
+      "tier": 2,
+      "trust": 0.1919136248613358
+    },
+    {
+      "user_id": "abb7f15d-b0e5-4787-addd-f27c0a7705bc",
+      "tier": 2,
+      "trust": 0.19432926397091105
+    },
+    {
+      "user_id": "3d73ac40-78d8-497b-b420-ae8296ef71fc",
+      "tier": 2,
+      "trust": 0.2981525158972811
+    },
+    {
+      "user_id": "18740263-9fcd-489f-8c80-d5a18183f517",
+      "tier": 2,
+      "trust": 0.27306830050456776
+    },
+    {
+      "user_id": "54dc8017-7b29-436c-aad2-c09a6861b1e6",
+      "tier": 3,
+      "trust": 0.13486665227015723
+    },
+    {
+      "user_id": "5d26e693-deb7-411c-98d1-88bff612e0dd",
+      "tier": 3,
+      "trust": 0.01755404172060649
+    },
+    {
+      "user_id": "cfb4b209-29a1-46ca-a08a-45dfa4b8a051",
+      "tier": 3,
+      "trust": 0.07248906626692934
+    },
+    {
+      "user_id": "4e1b0380-6c87-446c-8079-ac5e8d2292e0",
+      "tier": 3,
+      "trust": 0.01953977716085945
+    }
+  ],
+  "telemetry": [
+    {
+      "step": 1,
+      "mean_trust": 0.19872156390343024,
+      "trust_variance": 0.021519815072377615,
+      "csi": 0.9139207397104896,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 2,
+      "mean_trust": 0.19724822303193953,
+      "trust_variance": 0.021147608907376735,
+      "csi": 0.915409564370493,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 3,
+      "mean_trust": 0.19774461670731713,
+      "trust_variance": 0.02174272613315832,
+      "csi": 0.9130290954673668,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 4,
+      "mean_trust": 0.2014721414794544,
+      "trust_variance": 0.021703063122482488,
+      "csi": 0.91318774751007,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 5,
+      "mean_trust": 0.19759866872483214,
+      "trust_variance": 0.021672007285269045,
+      "csi": 0.9133119708589238,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 6,
+      "mean_trust": 0.1967151574905925,
+      "trust_variance": 0.02157623920368778,
+      "csi": 0.9136950431852489,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 7,
+      "mean_trust": 0.19832578400872072,
+      "trust_variance": 0.022889108124179738,
+      "csi": 0.908443567503281,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 8,
+      "mean_trust": 0.19947665678429405,
+      "trust_variance": 0.022811252391921534,
+      "csi": 0.9087549904323139,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 9,
+      "mean_trust": 0.19952308317060435,
+      "trust_variance": 0.022619861864374154,
+      "csi": 0.9095205525425034,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    },
+    {
+      "step": 10,
+      "mean_trust": 0.20103023377272886,
+      "trust_variance": 0.021242201787278522,
+      "csi": 0.9150311928508859,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false
+    }
+  ]
+}

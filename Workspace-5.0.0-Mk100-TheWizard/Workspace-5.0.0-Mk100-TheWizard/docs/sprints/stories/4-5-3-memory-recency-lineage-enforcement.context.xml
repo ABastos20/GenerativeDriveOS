@@ -1,0 +1,122 @@
+<story-context id="4-5-3-memory-recency-lineage-enforcement" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.3</storyId>
+    <title>Memory Recency and Lineage Enforcement</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-3-memory-recency-lineage-enforcement.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis user asking time-sensitive questions</asA>
+    <iWant>retrieval to prioritize recent document versions and warn about stale content</iWant>
+    <soThat>I don't receive outdated information when newer versions exist in the knowledge base</soThat>
+    <tasks>
+      <task id="1">Implement freshness scoring using doc_last_seen timestamp</task>
+      <task id="2">Filter results by min_freshness threshold (default 0.5)</task>
+      <task id="3">Implement version conflict resolution - prefer newest version</task>
+      <task id="4">Add structured logging for stale retrievals and version conflicts</task>
+      <task id="5">Add --allow-stale CLI flag and allow_stale API parameter</task>
+      <task id="6">Optional: Add freshness_score computed column to documents table</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Retrieval computes freshness score using doc_last_seen timestamp</criterion>
+    <criterion id="2">Freshness formula: 1.0 / (1 + age_days / 30) (30-day half-life)</criterion>
+    <criterion id="3">Results filtered by min_freshness threshold (default: 0.5)</criterion>
+    <criterion id="4">Version conflicts detected when multiple versions of same doc exist</criterion>
+    <criterion id="5">Newest version preferred, stale chunks quarantined from results</criterion>
+    <criterion id="6">Warning logs emitted when retrieving from stale documents</criterion>
+    <criterion id="7">CLI flag --allow-stale overrides freshness filtering</criterion>
+    <criterion id="8">API parameter allow_stale available on chat endpoint</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.3: Memory Recency and Lineage Enforcement</section>
+        <snippet>Enforce document freshness at retrieval time, quarantine stale chunks, prioritize recent versions.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service</kind>
+        <symbol>search_memory</symbol>
+        <reason>Primary function to modify - add freshness scoring and filtering</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/temporal_chunk_manager.py</path>
+        <kind>service</kind>
+        <symbol>TemporalChunkManager</symbol>
+        <reason>Existing temporal awareness - may provide doc_last_seen</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>command</kind>
+        <symbol>query_command</symbol>
+        <reason>Add --allow-stale flag</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <reason>Add allow_stale parameter</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>model</kind>
+        <symbol>Document</symbol>
+        <reason>Optional: add freshness_score computed column</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="datetime" version="stdlib" reason="Age calculation"/>
+        <package name="structlog" version=">=23.0.0" reason="Structured warning logs"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>30-day half-life balances recency vs. stability</constraint>
+    <constraint>--allow-stale shows ALL results but still logs warnings</constraint>
+    <constraint>Version conflict detection uses -v suffix pattern for base key extraction</constraint>
+    <constraint>Freshness filtering should not significantly impact search latency</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>search_memory</name>
+      <kind>function</kind>
+      <signature>def search_memory(query, k=10, domains=None, min_freshness=0.5, allow_stale=False) -> List[SearchResult]</signature>
+      <path>src/jarvis/memory/search.py</path>
+    </interface>
+    <interface>
+      <name>_resolve_version_conflicts</name>
+      <kind>function</kind>
+      <signature>def _resolve_version_conflicts(results: List[SearchResult]) -> List[SearchResult]</signature>
+      <path>src/jarvis/memory/search.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Mock Qdrant results with various doc_last_seen values. Test edge cases.</standards>
+    <locations>
+      <location>tests/unit/memory/test_freshness_filtering.py</location>
+      <location>tests/integration/memory/test_version_conflict_resolution.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">Test freshness score computation with various ages</idea>
+      <idea ac="3">Test filtering with various thresholds</idea>
+      <idea ac="4,5">Test version conflict resolution</idea>
+      <idea ac="6">Test warning logs are emitted for stale docs</idea>
+      <idea ac="7,8">Test --allow-stale override behavior</idea>
+    </ideas>
+  </tests>
+</story-context>

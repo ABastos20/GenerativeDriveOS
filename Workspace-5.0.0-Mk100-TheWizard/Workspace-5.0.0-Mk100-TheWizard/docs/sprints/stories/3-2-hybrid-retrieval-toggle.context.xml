@@ -1,0 +1,223 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.2</storyId>
+    <title>Hybrid Retrieval Toggle</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/3-2-hybrid-retrieval-toggle.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a power user</asA>
+    <iWant>to blend semantic and keyword retrieval</iWant>
+    <soThat>I can handle edge cases where BM25 outperforms pure vectors</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Implement PostgreSQL full-text search integration</task>
+      <task id="2" ac="1,2">Score normalization and merging logic</task>
+      <task id="3" ac="1,3,4">CLI parameter extension</task>
+      <task id="4" ac="3">Configuration and defaults</task>
+      <task id="5" ac="all">Tests</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">User adds --retriever hybrid --weight 0.7 → system runs BM25/Postgres full-text search alongside vector search, normalizes scores, merges results</criterion>
+    <criterion id="2">System runs hybrid retrieval → scores normalized (min-max or z-score) before weighting, ensuring fair comparison between BM25 and vector scores</criterion>
+    <criterion id="3">Defaults configured → user runs query without specifying retriever mode → system uses configured default (semantic-only, keyword-only, or hybrid with default weight)</criterion>
+    <criterion id="4">Query parameters validated → user specifies invalid parameters (e.g., weight > 1.0 or < 0.0) → CLI displays clear error message and exits with non-zero code</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3: Intelligent RAG Query Engine</title>
+        <section>Story 3.2: Hybrid Retrieval Toggle</section>
+        <snippet>Blend semantic and keyword retrieval to handle edge cases where BM25 outperforms pure vectors. BM25/Postgres full-text search alongside vector search, with score normalization and result merging.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Data Architecture - PostgreSQL Schema</title>
+        <section>PostgreSQL Full-Text Search</section>
+        <snippet>PostgreSQL supports tsvector + tsquery for keyword matching with ts_rank_cd() for BM25-like scoring. Can extend existing tables or create knowledge_chunks table with tsvector column for efficient indexing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pattern 2: Markdown-First Knowledge Pipeline</title>
+        <section>Markdown Storage</section>
+        <snippet>All documents saved as .md with YAML frontmatter. Hybrid chunking respects markdown structure (headers = semantic boundaries). Text stored in ~/.jarvis/knowledge/ for both vector and full-text indexing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FR1: RAG Query System</title>
+        <section>Query Latency Optimization</section>
+        <snippet>Target < 2s (P95) for RAG queries. Embedding caching via Redis (5 min TTL). Qdrant tuning with HNSW index (m=16, ef_construct=200). Database connection pooling (5-10 connections).</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/3-1-query-command-response-envelope.md</path>
+        <title>Story 3.1: Query Command & Response Envelope</title>
+        <section>Learnings - Memory Search Service</section>
+        <snippet>src/jarvis/memory/search.py provides search_memory(query, k, domains) returning SearchResult[] with scores. SearchResult dataclass includes text, score, source_file, section, domain, metadata with chunk_id.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service</kind>
+        <symbol>search_memory</symbol>
+        <lines>61-137</lines>
+        <reason>Existing semantic search function to extend with keyword_search() and hybrid_search() functions. SearchResult dataclass (lines 22-30) will be reused for all retrieval modes.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>dataclass</kind>
+        <symbol>SearchResult</symbol>
+        <lines>22-30</lines>
+        <reason>Standard result structure for all retrieval modes (semantic, keyword, hybrid). Contains text, score, source_file, section, domain, metadata fields.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>cli-command</kind>
+        <symbol>query</symbol>
+        <lines>16-189</lines>
+        <reason>RAG query command from Story 3.1. Extend with --retriever and --weight parameters to support hybrid mode. Currently only calls search.search_memory() - needs to route to keyword_search() or hybrid_search() based on retriever parameter.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/postgres.py</path>
+        <kind>service</kind>
+        <symbol>get_session</symbol>
+        <lines>179-209</lines>
+        <reason>PostgreSQL session context manager. Use for full-text search queries (ts_rank_cd, tsvector, tsquery) in keyword_search() implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/memory/test_search.py</path>
+        <kind>test</kind>
+        <symbol>test_search_memory_basic</symbol>
+        <lines>24-36</lines>
+        <reason>Test pattern for search functions. Follow this pattern for test_keyword_search_basic() and test_hybrid_search_basic() - mock embedding/queries, verify result structure.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <package name="psycopg2-binary" version="^2.9.9" reason="PostgreSQL driver for full-text search queries" />
+      <package name="sqlalchemy" version="^2.0.0" reason="ORM for PostgreSQL queries with text search support" />
+      <package name="sentence-transformers" version="^5.1.0" reason="Embedding generation for semantic search (all-MiniLM-L6-v2 model)" />
+      <package name="qdrant-client" version="1.15.1" reason="Vector database client for semantic search" />
+      <package name="structlog" version="^24.1.0" reason="Structured logging for search operations" />
+      <package name="typer" version="^0.12.0" reason="CLI framework for --retriever and --weight parameters" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="1" source="docs/architecture.md">Query latency target: < 2s (P95) for RAG queries. Hybrid search must run semantic and keyword searches in parallel or sequentially without exceeding target.</constraint>
+    <constraint id="2" source="docs/architecture.md">Database connection pooling: 5-10 connections configured. Keyword search queries must use existing connection pool from postgres.py.</constraint>
+    <constraint id="3" source="docs/architecture.md">Score normalization required before merging: Use min-max normalization to bring vector scores [0-1] and BM25 scores to comparable range.</constraint>
+    <constraint id="4" source="docs/epics.md">Weighted merging: hybrid_score = (weight * semantic_score) + ((1 - weight) * keyword_score). Default weight should be configurable.</constraint>
+    <constraint id="5" source="Story 3.1 Learnings">SearchResult dataclass is standard - maintain same structure for keyword and hybrid results to ensure compatibility with query.py formatter.</constraint>
+    <constraint id="6" source="Story 3.1 Learnings">Mock patching pattern: Patch where functions are used (e.g., jarvis.cli.query.search_memory) not where defined (jarvis.memory.search.search_memory).</constraint>
+    <constraint id="7" source="pyproject.toml">Code style: Black formatting (line-length=100), Ruff linting (E, W, F, I, B, C4, UP checks), type hints required (mypy strict mode).</constraint>
+    <constraint id="8" source="pyproject.toml">Test coverage target: pytest with --cov=jarvis, show missing lines. Story 3.1 achieved 94% coverage - maintain similar standard.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>SearchResult</name>
+      <type>dataclass</type>
+      <location>src/jarvis/memory/search.py:22-30</location>
+      <signature>
+@dataclass
+class SearchResult:
+    text: str
+    score: float
+    source_file: Optional[str]
+    section: Optional[str]
+    domain: Optional[str]
+    metadata: dict
+      </signature>
+      <usage>Standard result structure for all retrieval modes. Reuse this for keyword_search() and hybrid_search() return values.</usage>
+    </interface>
+    <interface>
+      <name>search_memory</name>
+      <type>function</type>
+      <location>src/jarvis/memory/search.py:61-137</location>
+      <signature>
+def search_memory(
+    query: str,
+    *,
+    k: int = 10,
+    domains: Optional[Sequence[str]] = None,
+    client: Optional["qdrant_db.QdrantClient"] = None,
+) -> List[SearchResult]:
+      </signature>
+      <usage>Existing semantic search function. New keyword_search() and hybrid_search() should follow same signature pattern (query, k, domains, optional client/session for testing).</usage>
+    </interface>
+    <interface>
+      <name>keyword_search</name>
+      <type>function</type>
+      <location>NEW - src/jarvis/memory/search.py (to be added)</location>
+      <signature>
+def keyword_search(
+    query: str,
+    *,
+    k: int = 10,
+    domains: Optional[Sequence[str]] = None,
+    session: Optional[Session] = None,
+) -> List[SearchResult]:
+      </signature>
+      <usage>New function for PostgreSQL full-text search using tsvector, tsquery, ts_rank_cd(). Returns SearchResult[] compatible with existing code.</usage>
+    </interface>
+    <interface>
+      <name>hybrid_search</name>
+      <type>function</type>
+      <location>NEW - src/jarvis/memory/search.py (to be added)</location>
+      <signature>
+def hybrid_search(
+    query: str,
+    *,
+    k: int = 10,
+    weight: float = 0.7,
+    domains: Optional[Sequence[str]] = None,
+    client: Optional["qdrant_db.QdrantClient"] = None,
+    session: Optional[Session] = None,
+) -> List[SearchResult]:
+      </signature>
+      <usage>New function that calls both search_memory() and keyword_search(), normalizes scores, merges with weighted formula, returns top-k unified SearchResult[].</usage>
+    </interface>
+    <interface>
+      <name>get_session</name>
+      <type>context-manager</type>
+      <location>src/jarvis/database/postgres.py:179-209</location>
+      <signature>
+@contextmanager
+def get_session() -> Generator[Session, None, None]:
+      </signature>
+      <usage>Use for PostgreSQL queries in keyword_search(). Provides session with automatic commit/rollback/close. Execute raw SQL with session.execute(text("SELECT ...")).</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard>Follow pytest conventions from tests/unit/memory/test_search.py</standard>
+      <standard>Mock external dependencies: Patch _embed_query, QdrantClient, PostgreSQL session</standard>
+      <standard>Use DummyPoint pattern for mocking Qdrant results</standard>
+      <standard>Test basic functionality, domain filtering, empty queries, parameter validation</standard>
+      <standard>Mock patching: Patch where used (jarvis.cli.query.X) not where defined (jarvis.memory.search.X)</standard>
+      <standard>Coverage target: > 90% for new functions (Story 3.1 achieved 94.12%)</standard>
+      <standard>Type hints required on all function signatures (mypy strict mode enabled)</standard>
+    </standards>
+    <locations>
+      <location>tests/unit/memory/test_search.py - Add test_keyword_search_*, test_hybrid_search_* functions</location>
+      <location>tests/unit/cli/test_query.py - Add test cases for --retriever and --weight parameters</location>
+      <location>tests/integration/memory/ - Add integration test for hybrid search with real Qdrant + PostgreSQL</location>
+    </locations>
+    <ideas>
+      <idea>Test hybrid search with different weight values (0.0, 0.5, 0.7, 1.0) to verify weighted merging</idea>
+      <idea>Test score normalization with edge cases (all same scores, very different score ranges)</idea>
+      <idea>Test that hybrid search deduplicates results if same chunk appears in both semantic and keyword results</idea>
+      <idea>Test parameter validation: weight must be 0.0-1.0, invalid retriever mode shows error</idea>
+      <idea>Test configuration defaults: ~/.jarvis/config.yaml default_retriever and default_weight</idea>
+      <idea>Performance test: Verify hybrid search stays under 2s (P95) latency target</idea>
+    </ideas>
+  </tests>
+</story-context>

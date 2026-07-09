@@ -1,0 +1,31 @@
+{
+    "epic": 11,
+    "version": "5.0.0",
+    "codename": "Mk100 - The Wizard",
+    "status": "stable",
+    "sovereign": true,
+    "locks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+    ],
+    "locks_verified": {
+        "lock_1_llm_sandboxing": true,
+        "lock_2_math_sovereignty": true,
+        "lock_3_audit_logs": true,
+        "lock_4_capability_index": true,
+        "lock_5_semantic_firewall": true,
+        "lock_6_cids": true,
+        "lock_7_epistemic_sovereignty": true
+    },
+    "story_11_8_complete": true,
+    "activation_timestamp": "2025-12-10T21:07:00Z",
+    "unlocks": [
+        "8-8"
+    ],
+    "notes": "Epic 11 invariants are now mandatory. Any workflow tagged epic=8-8 MUST check this file and refuse execution if sovereign=false."
+}

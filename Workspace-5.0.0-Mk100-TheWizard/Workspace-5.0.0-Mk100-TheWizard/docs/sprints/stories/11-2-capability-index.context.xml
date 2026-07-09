@@ -1,0 +1,176 @@
+<story-context id="11-2-capability-index" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-2</storyId>
+    <title>Capability Index & Command Sovereignty</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-2-capability-index.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>System Architect</asA>
+    <iWant>a machine-readable sovereign capability registry</iWant>
+    <soThat>Mk100 "The Wizard" can only execute actions that are constitutionally permitted, preventing Ultron-by-accident</soThat>
+    <tasks>
+      <task id="1">Create Capability Registry (config/capability_index.json)</task>
+      <task id="2">Implement Capability Service (CapabilityIndex class)</task>
+      <task id="3">Enforce in ReasoningEngine (capability check before execution)</task>
+      <task id="4">Governance Integration (proposal + vote for changes)</task>
+      <task id="5">Telemetry & Monitoring (denial logging, intent drift)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Capability Registry">
+      <item>config/capability_index.json created with versioned capabilities</item>
+      <item>Each capability has: name, allowed, tier, requires, agent_roles</item>
+      <item>Registry is immutable at runtime (loaded once on startup)</item>
+      <item>Registry version tracked (semantic versioning)</item>
+      <item>Default deny policy (unlisted capabilities are forbidden)</item>
+    </ac>
+    <ac id="2" title="Capability Service">
+      <item>CapabilityIndex service in src/jarvis/governance/capabilities.py</item>
+      <item>is_allowed(action_type, agent_role) -> Decision method</item>
+      <item>Decision enum: ALLOW, DENY, REQUIRE_HUMAN</item>
+      <item>Role-based filtering (e.g., only storyteller can write_story)</item>
+      <item>Tier-based filtering (public vs restricted capabilities)</item>
+    </ac>
+    <ac id="3" title="ReasoningEngine Enforcement">
+      <item>ReasoningEngine checks capabilities before calling tools</item>
+      <item>Denied actions are dropped with audit log entry</item>
+      <item>REQUIRE_HUMAN actions escalate to approval queue</item>
+      <item>No tool is ever called without capability validation</item>
+      <item>Fallback to safe no-op if capability check fails</item>
+    </ac>
+    <ac id="4" title="Governance Binding">
+      <item>Capability updates require PermissionAction.CONFIGURE or OWNER</item>
+      <item>Capability changes recorded in governance audit log</item>
+      <item>Capability changes require proposal + vote (not direct edits)</item>
+      <item>Version bumped on every capability change</item>
+      <item>Old capability versions archived for audit</item>
+    </ac>
+    <ac id="5" title="Telemetry & Observability">
+      <item>Denied actions logged with: agent_id, action_type, capability_rule, timestamp</item>
+      <item>Capability usage metrics tracked (which capabilities used most)</item>
+      <item>Intent drift detection (agents repeatedly trying forbidden actions)</item>
+      <item>Dashboard visualization of capability enforcement</item>
+      <item>Alerts on repeated denial patterns (potential Ultron behavior)</item>
+    </ac>
+    <ac id="6" title="Prompt Sovereignty (Fifth Lock)">
+      <item>Prompt content filtering before CLI invocation</item>
+      <item>Pattern matching for: implement, refactor, modify file, run command</item>
+      <item>CLI safe mode flags enforced (codex: exec --json, claude: -p --output-format json)</item>
+      <item>Operational persona prepended: NARRATIVE MODE ONLY</item>
+      <item>Workflow capability ceilings prevent step escalation</item>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-1b-bmad-agent-cognition.md" title="BMAD Story" section="Five Locks" snippet="Defines Locks 1-3 (Sandboxing, Math Sovereignty, Audit) implemented"/>
+      <doc path="docs/sprints/stories/11-2-capability-index.md" title="This Story" section="All" snippet="Defines Lock 4: constitutional permission gate"/>
+      <doc path="docs/sprints/stories/11-3-semantic-command-firewall.md" title="Semantic Firewall Story" section="All" snippet="Defines Lock 5: Prompt and Tool Sovereignty (companion story)"/>
+    </docs>
+    <code>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="CapabilityIndex" reason="Core Lock 4 implementation - exists, needs extension"/>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="Decision" reason="Enum for ALLOW/DENY/REQUIRE_HUMAN"/>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="PromptDriftDetector" reason="Intent drift detection - already implemented"/>
+      <file path="src/jarvis/agents/reasoning_engine.py" kind="engine" symbol="LLMReasoningEngine" reason="Enforcement point - needs capability check integration"/>
+      <file path="src/jarvis/llm/providers.py" kind="provider" symbol="LocalCLIProvider" reason="CLI safe mode already implemented"/>
+      <file path="src/jarvis/llm/client.py" kind="client" symbol="call_llm" reason="LLM call path"/>
+      <file path="scripts/tests/simulate_hybrid.py" kind="test" symbol="HybridSimulation" reason="Integration testing"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="json" version="stdlib" reason="Capability registry loading"/>
+        <package name="enum" version="stdlib" reason="Decision enum"/>
+        <package name="structlog" version=">=24.0.0" reason="Audit logging"/>
+        <package name="re" version="stdlib" reason="Prompt pattern matching"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="safety">Default deny policy - unlisted capabilities are forbidden</constraint>
+    <constraint type="safety">No tool ever called without capability validation</constraint>
+    <constraint type="safety">Denied actions must produce audit log entry</constraint>
+    <constraint type="architecture">Registry immutable at runtime (loaded once on startup)</constraint>
+    <constraint type="architecture">Capability changes require governance vote</constraint>
+    <constraint type="budget">LLM calls must stay within budget cap</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="CapabilityIndex.is_allowed" kind="method" path="src/jarvis/governance/capabilities.py" signature="is_allowed(action_type: str, agent_role: str) -> Decision"/>
+    <interface name="CapabilityIndex.validate_prompt" kind="method" path="src/jarvis/governance/capabilities.py" signature="validate_prompt(prompt: str, capability: str) -> tuple[bool, str]"/>
+    <interface name="CapabilityIndex.get_capability_info" kind="method" path="src/jarvis/governance/capabilities.py" signature="get_capability_info(action_type: str) -> Optional[dict]"/>
+    <interface name="Decision" kind="enum" path="src/jarvis/governance/capabilities.py" signature="enum Decision: ALLOW, DENY, REQUIRE_HUMAN"/>
+    <interface name="PromptDriftDetector.record_denial" kind="method" path="src/jarvis/governance/capabilities.py" signature="record_denial(agent_id, agent_role, capability, action_type, matched_rules, prompt) -> None"/>
+  </interfaces>
+
+  <tests>
+    <standards>pytest-based unit tests for CapabilityIndex and Decision logic. Integration tests via simulate_hybrid.py. Governance workflow tests for capability updates.</standards>
+    <locations>
+      <location>tests/governance/test_capabilities.py</location>
+      <location>tests/agents/test_reasoning_engine.py</location>
+      <location>scripts/tests/simulate_hybrid.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test default deny for unknown capabilities</idea>
+      <idea ac="1">Test version tracking updates on capability change</idea>
+      <idea ac="2">Test is_allowed returns DENY for forbidden capabilities</idea>
+      <idea ac="2">Test role-based filtering (storyteller can write_story)</idea>
+      <idea ac="2">Test REQUIRE_HUMAN for restricted capabilities</idea>
+      <idea ac="3">Test ReasoningEngine drops denied actions</idea>
+      <idea ac="3">Test no tool called without capability validation</idea>
+      <idea ac="4">Test capability changes require CONFIGURE permission</idea>
+      <idea ac="4">Test version bump on capability change</idea>
+      <idea ac="5">Test denial event logged with full context</idea>
+      <idea ac="5">Test intent drift alert fires after 3+ denials</idea>
+      <idea ac="6">Test prompt filtering blocks "implement", "refactor"</idea>
+      <idea ac="6">Test CLI safe mode flags in command</idea>
+    </ideas>
+  </tests>
+
+  <fiveLocks>
+    <lock id="1" name="LLM Sandboxing" story="11-1b" description="LLM cannot directly act"/>
+    <lock id="2" name="Math Sovereignty" story="11-1b" description="LLM cannot choose goals"/>
+    <lock id="3" name="Audit Logs" story="11-1b" description="LLM cannot hide epistemic damage"/>
+    <lock id="4" name="Capability Index" story="11-2" description="LLM cannot request forbidden actions (THIS STORY)"/>
+    <lock id="5" name="Prompt and Tool Sovereignty" story="11-3" description="LLM cannot self-escalate into developer mode"/>
+  </fiveLocks>
+
+  <mk100Profile>
+    <philosophy>Mk100 is a myth engine + epistemic narrator, not a developer.</philosophy>
+    <capability name="write_story" allowed="true" tier="public" roles="storyteller"/>
+    <capability name="create_context" allowed="true" tier="public" roles="analyst, architect"/>
+    <capability name="world_building" allowed="true" tier="public" roles="storyteller"/>
+    <capability name="governance_reason" allowed="true" tier="public" roles="all"/>
+    <capability name="synthesize_context" allowed="true" tier="public" roles="analyst"/>
+    <capability name="run_cli_tool" allowed="true" tier="restricted" roles="developer" requires="human_approval"/>
+    <capability name="modify_code" allowed="false" tier="forbidden"/>
+    <capability name="run_shell" allowed="false" tier="forbidden"/>
+    <capability name="mutate_infra" allowed="false" tier="forbidden"/>
+    <capability name="override_budget" allowed="false" tier="forbidden"/>
+    <capability name="amend_constitution" allowed="false" tier="forbidden"/>
+  </mk100Profile>
+
+  <existingImplementation>
+    <status>partial</status>
+    <implemented>
+      <item>CapabilityIndex class with is_allowed(), validate_prompt(), evaluate_prompt()</item>
+      <item>Decision enum (ALLOW, DENY, REQUIRE_HUMAN)</item>
+      <item>PromptDriftDetector for intent drift detection</item>
+      <item>Default forbidden patterns with word boundaries</item>
+      <item>Shell meta-character detection</item>
+      <item>NARRATIVE_MODE_PREAMBLE in LocalCLIProvider</item>
+    </implemented>
+    <remaining>
+      <item>config/capability_index.json external registry file</item>
+      <item>ReasoningEngine integration with capability check</item>
+      <item>Governance binding for capability updates</item>
+      <item>Dashboard visualization</item>
+    </remaining>
+  </existingImplementation>
+</story-context>

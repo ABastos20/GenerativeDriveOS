@@ -1,0 +1,30 @@
+# Integration configuration for JARVIS agent
+# IMPORTANT: Do NOT store API keys in this file. Set all secrets via environment variables only.
+# Example: $env:OPENAI_API_KEY, $env:WEATHER_API_KEY, $env:FINANCE_API_KEY
+
+llms:
+  - name: local-llama
+    type: local
+    path: /path/to/llama.cpp  # TODO: Set actual path to local LLM
+  - name: openai
+    type: api
+    endpoint: https://api.openai.com/v1/chat/completions
+    # api_key: Set OPENAI_API_KEY in environment
+
+apis:
+  - name: weather
+    endpoint: https://api.weather.com/v3/
+    # api_key: Set WEATHER_API_KEY in environment
+  - name: finance
+    endpoint: https://api.finance.com/v1/
+    # api_key: Set FINANCE_API_KEY in environment
+
+mcp_servers:
+  # Local Jarvis MCP server (FastAPI over HTTP inside jarvis-app container)
+  - name: jarvis-mcp
+    type: http
+    url: http://jarvis-app:8001
+    health: /mcp/health
+    ping: /mcp/ping
+
+# Next: Add more integrations as needed for your use case

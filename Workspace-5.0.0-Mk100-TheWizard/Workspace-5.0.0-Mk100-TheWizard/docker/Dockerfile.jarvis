@@ -1,0 +1,55 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.13-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_VERSION=1.8.3 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    POETRY_HOME=/opt/poetry \
+    PATH="/opt/poetry/bin:${PATH}"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        git \
+        gosu \
+        libpq-dev \
+        netcat-openbsd \
+        pandoc \
+        w3m \
+        xdg-utils \
+        nodejs \
+        npm && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install "poetry==${POETRY_VERSION}" "click==8.1.7"
+
+WORKDIR /workspace
+
+# Install Python dependencies via Poetry
+COPY pyproject.toml poetry.lock* ./
+RUN poetry config virtualenvs.create false \
+    && poetry install --with dev --no-interaction --no-ansi
+
+# Install global Node-based CLIs for Anthropic, OpenAI, and Gemini
+RUN npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli || true
+
+# Install LLM CLI tools for local provider fallback
+RUN pip install --no-cache-dir \
+    anthropic-cli \
+    google-generativeai \
+    openai
+
+COPY docker/scripts/healthcheck.sh /usr/local/bin/jarvis-healthcheck
+COPY docker/scripts/entrypoint.sh /usr/local/bin/jarvis-entrypoint
+COPY docker/scripts/run-jarvis-services.sh /usr/local/bin/jarvis-run-services
+COPY scripts/setup/setup_cli_wrappers.sh /tmp/setup_cli_wrappers.sh
+RUN chmod +x /usr/local/bin/jarvis-healthcheck /usr/local/bin/jarvis-entrypoint /usr/local/bin/jarvis-run-services && \
+    bash /tmp/setup_cli_wrappers.sh && \
+    rm /tmp/setup_cli_wrappers.sh
+
+ENTRYPOINT ["/usr/local/bin/jarvis-entrypoint"]
+
+CMD ["bash", "-c", "tail -f /dev/null"]

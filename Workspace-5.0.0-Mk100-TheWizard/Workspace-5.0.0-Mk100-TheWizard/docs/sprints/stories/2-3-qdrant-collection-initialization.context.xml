@@ -1,0 +1,225 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Qdrant Collection Initialization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-21</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/2-3-qdrant-collection-initialization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>vector engineer</asA>
+    <iWant>a managed Qdrant collection seeded with embeddings</iWant>
+    <soThat>semantic search is consistent across restarts</soThat>
+    <tasks>
+      - Task 1: Implement Qdrant client wrapper (AC: #1)
+        * Create src/jarvis/database/qdrant.py with connection management
+        * Implement collection creation with 384-d vector config (Cosine distance)
+        * Add error handling for connection failures
+        * Add type hints and docstrings
+      - Task 2: Create collection initialization script (AC: #1, #4)
+        * Create initialization script (e.g., scripts/init_qdrant.py or CLI command)
+        * Implement idempotent collection creation (check if exists first)
+        * Configure collection parameters per architecture (HNSW, distance metric)
+        * Add logging with structlog for initialization events
+      - Task 3: Implement health check validation (AC: #2)
+        * Add Qdrant health check to src/jarvis/cli/commands/doctor.py
+        * Verify collection existence and configuration
+        * Check vector dimensions and distance metric
+        * Validate connection to Qdrant service
+      - Task 4: Add persistence verification (AC: #3)
+        * Verify volume mounting in docker-compose.yml (qdrant-data volume)
+        * Test restart scenario (insert points → restart → verify points exist)
+        * Document persistence configuration in comments
+      - Task 5: Write unit and integration tests (AC: all)
+        * Unit tests for Qdrant wrapper functions
+        * Integration test: Initialize collection and verify structure
+        * Integration test: Idempotency (run init twice, no errors)
+        * Integration test: Persistence (restart Qdrant, verify data)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given embeddings exist in PostgreSQL staging tables, When the provisioning command runs, Then Qdrant collections with 384-d vectors and metadata payloads are created
+    2. Given the Qdrant service is running, When health checks are performed, Then they confirm replication parameters per architecture
+    3. Given a collection is initialized, When the system restarts, Then the collection persists with all data intact
+    4. Given the initialization script runs, When a collection already exists, Then the script handles idempotently without errors
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Qdrant Configuration</section>
+        <snippet>Qdrant v1.15.5 (Vector Database): Purpose-built vector search engine. Native context sharding. Docker deployment with qdrant-client 1.15.1+. Collection configured with 384-d vectors (all-MiniLM-L6-v2), Cosine distance, HNSW config (m=16, ef_construct=200).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Qdrant Collections (Data Architecture)</section>
+        <snippet>Collection "knowledge" with 384-dimension vectors, Cosine distance metric. Point structure includes vector + payload with text, source_file, section, domain, ingested_at. HNSW parameters: m=16, ef_construct=200, full_scan_threshold=10000.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>AI Advisor - Epic Breakdown</title>
+        <section>Story 2.3: Qdrant Collection Initialization</section>
+        <snippet>As a vector engineer, I want a managed Qdrant collection seeded with embeddings, so that semantic search is consistent across restarts. Prerequisites: Story 2.2. Technical Notes: Use qdrant-client 1.15.1; maintain configuration file for distance metric (Cosine) and write operations.</snippet>
+      </doc>
+      <doc>
+        <path>docker/qdrant/config.yaml</path>
+        <title>Qdrant Service Configuration</title>
+        <section>Service and Storage Config</section>
+        <snippet>Qdrant configured with HTTP port 6333, GRPC port 6334. Storage uses on_disk_payload: true, default_segment_number: 2. Log level: INFO.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/database/postgres.py</path>
+        <kind>module</kind>
+        <symbol>get_connection_string, get_engine, get_session_factory</symbol>
+        <lines>50-177</lines>
+        <reason>Establishes pattern for database connection management, environment-based configuration, and session factory. This story should follow the same pattern for Qdrant client initialization.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/postgres.py</path>
+        <kind>module</kind>
+        <symbol>DatabaseError, ConnectionError, SessionError</symbol>
+        <lines>32-44</lines>
+        <reason>Custom exception hierarchy for database operations. Qdrant module should define similar exceptions (VectorDBError, QdrantConnectionError).</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/doctor.py</path>
+        <kind>module</kind>
+        <symbol>run, app</symbol>
+        <lines>1-34</lines>
+        <reason>Health check command structure using Typer. Story should extend this with Qdrant-specific health checks via doctor_checks module.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/doctor_checks.py</path>
+        <kind>module</kind>
+        <symbol>run_all_checks, summarize</symbol>
+        <lines>N/A</lines>
+        <reason>Health check registry pattern. Add Qdrant collection verification check here (check_qdrant_collection function).</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/conversations.py</path>
+        <kind>module</kind>
+        <symbol>get_db</symbol>
+        <lines>N/A</lines>
+        <reason>Established pattern for database dependency injection using get_session_factory(). Qdrant client should follow similar dependency pattern if exposed via API later.</reason>
+      </artifact>
+      <artifact>
+        <path>docker/docker-compose.yml</path>
+        <kind>config</kind>
+        <symbol>qdrant service</symbol>
+        <lines>67-77</lines>
+        <reason>Qdrant service already configured with volume persistence (qdrant-data:/qdrant/storage), port 6333 exposed, config file mounted. Story should verify this configuration.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="qdrant-client" version="^1.15.1" />
+        <package name="sentence-transformers" version="^5.1.0" comment="For embedding model - used in point payload" />
+        <package name="pydantic" version="^2.9.0" comment="For config validation" />
+        <package name="pydantic-settings" version="^2.5.0" comment="For environment-based config" />
+        <package name="structlog" version="^24.1.0" comment="For structured logging" />
+        <package name="typer" version="^0.12.0" extras="all" comment="For CLI commands" />
+        <package name="pytest" version="^8.3.0" dev="true" />
+        <package name="pytest-asyncio" version="^0.24.0" dev="true" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Follow existing database module patterns from src/jarvis/database/postgres.py for connection management and error handling
+    - Use pydantic-settings for Qdrant configuration (QDRANT_HOST, QDRANT_PORT environment variables with defaults)
+    - Implement custom exception hierarchy (QdrantError, QdrantConnectionError, CollectionError)
+    - Use structlog for all logging (logger.info, logger.error with structured context)
+    - Follow Python 3.13+ type hints (use from __future__ import annotations)
+    - All functions must have docstrings following Google style
+    - Use snake_case for function names, PascalCase for classes, UPPER_SNAKE_CASE for constants
+    - Collection name should be configurable but default to "knowledge"
+    - Idempotent operations: check if collection exists before creating
+    - Health checks must return structured results compatible with doctor_checks.summarize pattern
+    - Volume persistence must be verified (qdrant-data volume already configured in docker-compose.yml)
+    - Follow architecture.md HNSW config: m=16, ef_construct=200, full_scan_threshold=10000
+    - Distance metric: Cosine (per architecture.md)
+    - Vector size: 384 dimensions (all-MiniLM-L6-v2 model)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>QdrantClient</name>
+      <kind>Python class</kind>
+      <signature>QdrantClient(host: str, port: int, timeout: float = 5.0)</signature>
+      <path>External: qdrant-client library</path>
+      <methods>
+        - collection_exists(collection_name: str) -> bool
+        - create_collection(collection_name: str, vectors_config: VectorParams, hnsw_config: HnswConfigDiff) -> bool
+        - get_collection(collection_name: str) -> CollectionInfo
+        - upsert(collection_name: str, points: List[PointStruct]) -> UpdateResult
+      </methods>
+    </interface>
+    <interface>
+      <name>VectorParams</name>
+      <kind>Pydantic model</kind>
+      <signature>VectorParams(size: int, distance: Distance)</signature>
+      <path>External: qdrant_client.models</path>
+    </interface>
+    <interface>
+      <name>HnswConfigDiff</name>
+      <kind>Pydantic model</kind>
+      <signature>HnswConfigDiff(m: int, ef_construct: int, full_scan_threshold: int)</signature>
+      <path>External: qdrant_client.models</path>
+    </interface>
+    <interface>
+      <name>Distance (Enum)</name>
+      <kind>Python enum</kind>
+      <signature>Distance.COSINE, Distance.EUCLID, Distance.DOT</signature>
+      <path>External: qdrant_client.models</path>
+    </interface>
+    <interface>
+      <name>get_session_factory pattern</name>
+      <kind>Function signature</kind>
+      <signature>def get_qdrant_client() -> QdrantClient</signature>
+      <path>To be created: src/jarvis/database/qdrant.py</path>
+      <note>Follow postgres.py pattern - singleton client with lazy initialization</note>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Follow existing test patterns from tests/integration/api/test_conversation_api_integration.py. Use pytest with type hints. Integration tests require Docker Compose (all services running). Unit tests should mock Qdrant client responses. Test file naming: test_*.py. Use fixtures for test setup (e.g., @pytest.fixture for qdrant_client). Follow pytest.ini_options: coverage tracking enabled, pythonpath includes src/. Test directory structure mirrors source (tests/unit/database/, tests/integration/database/).
+    </standards>
+    <locations>
+      - tests/unit/database/ - Unit tests with mocked Qdrant client
+      - tests/integration/database/ - Integration tests requiring Docker
+      - Create: tests/unit/database/test_qdrant.py
+      - Create: tests/integration/database/test_qdrant_integration.py
+    </locations>
+    <ideas>
+      AC #1 (Collection Creation):
+        - Unit: Test collection creation with correct vector params (mock client.create_collection)
+        - Unit: Test error handling when Qdrant connection fails
+        - Integration: Create collection and verify it exists with correct config
+        - Integration: Verify collection has 384-d vectors, Cosine distance, HNSW params
+
+      AC #2 (Health Checks):
+        - Unit: Test health check returns structured result
+        - Integration: Run jarvis doctor command and verify Qdrant check passes
+        - Integration: Verify health check detects when Qdrant is down
+
+      AC #3 (Persistence):
+        - Integration: Insert test points, restart Qdrant container, verify points still exist
+        - Integration: Verify qdrant-data volume is mounted correctly
+
+      AC #4 (Idempotency):
+        - Unit: Test collection_exists check before creation
+        - Integration: Run init_collection twice, verify no errors on second run
+        - Integration: Verify collection config unchanged after second init
+    </ideas>
+  </tests>
+</story-context>

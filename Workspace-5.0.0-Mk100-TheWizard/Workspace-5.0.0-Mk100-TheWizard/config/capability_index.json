@@ -1,0 +1,152 @@
+{
+    "version": "11.2.0",
+    "updated_at": "2025-12-10T00:00:00Z",
+    "default_policy": "deny",
+    "philosophy": "Mk100 is a myth engine + epistemic narrator, not a developer.",
+    "capabilities": {
+        "write_story": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Generate narrative content and story files",
+            "agent_roles": [
+                "storyteller"
+            ],
+            "requires": []
+        },
+        "create_context": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Synthesize project context from documents",
+            "agent_roles": [
+                "analyst",
+                "architect"
+            ],
+            "requires": []
+        },
+        "world_building": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Generate fictional world elements and lore",
+            "agent_roles": [
+                "storyteller"
+            ],
+            "requires": []
+        },
+        "governance_reason": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Reason about governance and institutional dynamics",
+            "agent_roles": [
+                "all"
+            ],
+            "requires": []
+        },
+        "synthesize_context": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Combine multiple context sources into unified view",
+            "agent_roles": [
+                "analyst"
+            ],
+            "requires": []
+        },
+        "search_code": {
+            "allowed": true,
+            "tier": "public",
+            "description": "Search the codebase index for functions and classes",
+            "agent_roles": [
+                "developer",
+                "architect",
+                "analyst"
+            ],
+            "requires": []
+        },
+        "run_cli_tool": {
+            "allowed": true,
+            "tier": "restricted",
+            "description": "Execute codex/claude CLI tools for LLM access",
+            "agent_roles": [
+                "developer"
+            ],
+            "requires": [
+                "human_approval"
+            ]
+        },
+        "modify_code": {
+            "allowed": false,
+            "tier": "forbidden",
+            "description": "Direct code modification",
+            "agent_roles": [],
+            "requires": []
+        },
+        "run_shell": {
+            "allowed": false,
+            "tier": "forbidden",
+            "description": "Shell command execution",
+            "agent_roles": [],
+            "requires": []
+        },
+        "mutate_infra": {
+            "allowed": false,
+            "tier": "forbidden",
+            "description": "Infrastructure changes (Docker, K8s, etc.)",
+            "agent_roles": [],
+            "requires": []
+        },
+        "override_budget": {
+            "allowed": false,
+            "tier": "forbidden",
+            "description": "Budget constraint bypass",
+            "agent_roles": [],
+            "requires": []
+        },
+        "amend_constitution": {
+            "allowed": false,
+            "tier": "forbidden",
+            "description": "Constitutional changes",
+            "agent_roles": [],
+            "requires": []
+        }
+    },
+    "global_forbidden_patterns": [
+        "\\bdeveloper mode\\b",
+        "\\bwrite\\s+code\\b",
+        "\\bmodify\\s+file\\b",
+        "\\brun\\s+command\\b",
+        "\\bexecute\\s+shell\\b",
+        "\\bapply\\s+changes\\b",
+        "\\bgit\\s+commit\\b",
+        "\\brm\\s+-rf\\b",
+        "\\bimplement\\s+",
+        "\\brefactor\\s+",
+        "\\bfix\\s+bug\\b",
+        "\\bupdate\\s+code\\b",
+        "[;&|`$()]",
+        ">\\s*/",
+        "<\\s*/"
+    ],
+    "per_capability": {
+        "write_story": {
+            "forbidden_patterns": [
+                "\\bimplement\\b",
+                "\\brefactor\\b",
+                "\\bfix\\s+bug\\b",
+                "\\bupdate\\s+code\\b"
+            ]
+        },
+        "create_context": {
+            "forbidden_patterns": [
+                "\\bgenerate\\s+implementation\\b",
+                "\\bdatabase\\s+migration\\b"
+            ]
+        }
+    },
+    "governance": {
+        "update_requires": [
+            "CONFIGURE",
+            "OWNER"
+        ],
+        "proposal_type": "capability_update",
+        "version_archive_enabled": true
+    }
+}

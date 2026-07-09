@@ -1,0 +1,102 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9-5</storyId>
+    <title>Governance Dashboard</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/9-5-governance-dashboard.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>governance participant</asA>
+    <iWant>a dashboard showing governance state, proposals, votes, and trust</iWant>
+    <soThat>democracy is transparent and I can monitor the system's political health</soThat>
+    <tasks>
+      <task id="1">Create dashboard aggregate API endpoint</task>
+      <task id="2">Build system health panel (users, proposals, constitution)</task>
+      <task id="3">Create active proposals view with vote counts</task>
+      <task id="4">Build trust leaderboard per domain</task>
+      <task id="5">Create constitutional view with red lines highlighted</task>
+      <task id="6">Implement WebSocket for real-time updates</task>
+      <task id="7">Add governance analytics and metrics</task>
+      <task id="8">Create export function for audit compliance</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Dashboard Route: /governance serves interactive dashboard</criterion>
+    <criterion id="AC2">System Health: Show governance health (users, proposals, constitution status)</criterion>
+    <criterion id="AC3">Real-time Updates: WebSocket or polling for live updates</criterion>
+    <criterion id="AC4">Mobile Responsive: Dashboard works on mobile devices</criterion>
+    <criterion id="AC5">Active Proposals: List of open proposals with vote counts</criterion>
+    <criterion id="AC6">Proposal Details: Click to see full proposal, votes, and timeline</criterion>
+    <criterion id="AC7">Vote History: My votes across all proposals</criterion>
+    <criterion id="AC8">Quick Vote: Cast vote directly from dashboard</criterion>
+    <criterion id="AC9">Trust Scores: My trust scores per domain</criterion>
+    <criterion id="AC10">Domain Leaderboard: Top experts per domain</criterion>
+    <criterion id="AC11">Trust Trend: Graph of trust changes over time</criterion>
+    <criterion id="AC12">Expertise Claims: Manage my claimed expertise</criterion>
+    <criterion id="AC13">Constitution Display: View current constitution</criterion>
+    <criterion id="AC14">Red Lines: Highlighted red lines with explanations</criterion>
+    <criterion id="AC15">Amendment History: Timeline of constitutional changes</criterion>
+    <criterion id="AC16">Violation Log: Proposals blocked by constitution</criterion>
+    <criterion id="AC17">Governance Metrics: Participation rate, quorum health</criterion>
+    <criterion id="AC18">Vote Analytics: Voting patterns, consensus trends</criterion>
+    <criterion id="AC19">Escalation History: All escalations and resolutions</criterion>
+    <criterion id="AC20">Export: Download governance data as CSV/JSON</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-9-planning.md" title="Epic 9 Planning" section="9-5: Governance Dashboard" snippet="UI for viewing governance state, active proposals, and voting history."/>
+      <doc path="src/jarvis/frontend/static/graph_viewer.html" title="Cognitive Cockpit" section="UI" snippet="Iron Man aesthetic pattern to follow for dashboard."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/frontend/static/graph_viewer.html" kind="frontend" symbol="dashboard" lines="1-100" reason="Match Iron Man aesthetic"/>
+      <file path="src/jarvis/api/memory.py" kind="api" symbol="router" lines="1-50" reason="Pattern for aggregate API endpoints"/>
+      <file path="src/jarvis/governance/*.py" kind="governance" symbol="*" lines="" reason="All governance modules to expose via dashboard"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="fastapi" version="^0.104"/>
+        <package name="websockets" version="^12.0"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Match Iron Man aesthetic from Cognitive Cockpit</constraint>
+    <constraint>Dashboard must work on mobile devices</constraint>
+    <constraint>Real-time updates via WebSocket</constraint>
+    <constraint>ARIA labels for accessibility</constraint>
+    <constraint>Export function for regulatory audit compliance</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/governance/dashboard" kind="REST" signature="GET /api/governance/dashboard -> GovernanceDashboard" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/metrics" kind="REST" signature="GET /api/governance/metrics -> GovernanceMetrics" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/audit" kind="REST" signature="GET /api/governance/audit -> AuditTrail" path="src/jarvis/api/governance.py"/>
+    <interface name="GET /api/governance/export" kind="REST" signature="GET /api/governance/export?format=json -> bytes" path="src/jarvis/api/governance.py"/>
+    <interface name="WS /ws/governance" kind="WebSocket" signature="WS /ws/governance -> {event_type, data}" path="src/jarvis/api/governance.py"/>
+    <interface name="/governance" kind="UI" signature="GET /governance -> HTML dashboard" path="src/jarvis/frontend/static/governance_dashboard.html"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Test dashboard API aggregation. Test WebSocket events. Test mobile responsiveness.</standards>
+    <locations>
+      <location>tests/unit/test_dashboard_api.py</location>
+      <location>tests/unit/test_governance_analytics.py</location>
+      <location>tests/integration/test_governance_dashboard.py</location>
+      <location>tests/e2e/test_dashboard_ui.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC1">Test /governance route serves HTML</idea>
+      <idea acId="AC3">Test WebSocket broadcasts vote events</idea>
+      <idea acId="AC5">Test proposals list shows correct vote counts</idea>
+      <idea acId="AC10">Test leaderboard shows top 5 per domain</idea>
+      <idea acId="AC20">Test export generates valid JSON</idea>
+    </ideas>
+  </tests>
+</story-context>

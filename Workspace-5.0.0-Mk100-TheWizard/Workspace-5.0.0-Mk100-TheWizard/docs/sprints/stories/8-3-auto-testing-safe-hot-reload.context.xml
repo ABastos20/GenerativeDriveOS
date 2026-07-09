@@ -1,0 +1,103 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>8-3</storyId>
+    <title>Auto-Testing & Safe Hot-Reload</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-3-auto-testing-safe-hot-reload.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis system making changes to itself</asA>
+    <iWant>automatic testing and safe hot-reload with rollback</iWant>
+    <soThat>I cannot brick myself and always have a recovery path</soThat>
+    <tasks>
+      <task id="1">Create SnapshotManager class with create, restore, get_lkg, set_lkg methods</task>
+      <task id="2">Create Snapshot model for versioned state storage</task>
+      <task id="3">Create TestRunner class for pre/post change testing</task>
+      <task id="4">Create HotReloadEngine with config, prompt, module reload methods</task>
+      <task id="5">Implement Last Known Good (LKG) snapshot tracking</task>
+      <task id="6">Implement auto-rollback on health check failure</task>
+      <task id="7">Create CLI commands for snapshot and reload operations</task>
+      <task id="8">Create audit log for all changes and rollbacks</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Snapshot Creation: jarvis snapshot create before any change</criterion>
+    <criterion id="AC2">Snapshot Storage: Versioned state (config, code refs, DB state)</criterion>
+    <criterion id="AC3">Snapshot Listing: jarvis snapshot list</criterion>
+    <criterion id="AC4">Snapshot Restore: jarvis snapshot restore id</criterion>
+    <criterion id="AC5">Pre-Change Tests: Run test suite before applying changes</criterion>
+    <criterion id="AC6">Post-Change Tests: Run test suite after applying changes</criterion>
+    <criterion id="AC7">Test Failure → Rollback: Auto-revert if tests fail</criterion>
+    <criterion id="AC8">Test Coverage Threshold: Block changes below threshold</criterion>
+    <criterion id="AC9">Config Hot-Reload: Update config without restart</criterion>
+    <criterion id="AC10">Prompt Hot-Reload: Update prompts without restart</criterion>
+    <criterion id="AC11">Code Hot-Reload: Reload modules where safe</criterion>
+    <criterion id="AC12">Full Restart: Graceful restart when hot-reload not possible</criterion>
+    <criterion id="AC13">Last Known Good (LKG): Always maintain LKG snapshot</criterion>
+    <criterion id="AC14">Auto-Rollback: Revert within 60s if health check fails</criterion>
+    <criterion id="AC15">Human Approval: Optional gate for risky changes</criterion>
+    <criterion id="AC16">Audit Log: Full trace of all changes and rollbacks</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-8-planning.md" title="Epic 8 Planning" section="8-3: Auto-Testing" snippet="Goal: Apply changes without bricking. MUST have Last Known Good snapshot and auto-revert on failure."/>
+      <doc path="src/jarvis/memory/governance_node.py" title="Governance Node" section="Escalation" snippet="Pattern for approval gates and human override."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/memory/governance_node.py" kind="governance" symbol="request_human_approval" lines="150-180" reason="Pattern for human approval gates"/>
+      <file path="src/jarvis/observability/tracing.py" kind="observability" symbol="trace context" lines="1-50" reason="Pattern for audit logging"/>
+      <file path="src/jarvis/cli/query.py" kind="cli" symbol="CLI commands" lines="1-50" reason="Pattern for creating Typer CLI commands"/>
+      <file path="config/settings.yaml" kind="config" symbol="settings" lines="1-30" reason="Config structure for hot-reload"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="typer" version="^0.9"/>
+        <package name="pytest" version="^7.4"/>
+        <package name="importlib" version="stdlib"/>
+        <package name="shutil" version="stdlib"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>CRITICAL: MUST have Last Known Good (LKG) snapshot always available</constraint>
+    <constraint>Auto-rollback within 60 seconds of health check failure</constraint>
+    <constraint>Test coverage must meet threshold before changes applied</constraint>
+    <constraint>All changes must be logged with trace_id</constraint>
+    <constraint>Module hot-reload only for explicitly safe modules</constraint>
+    <constraint>Full restart uses graceful shutdown pattern</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="jarvis snapshot create" kind="CLI" signature="jarvis snapshot create <name> -> Snapshot UUID" path="src/jarvis/cli/snapshot.py"/>
+    <interface name="jarvis snapshot list" kind="CLI" signature="jarvis snapshot list -> List[Snapshot]" path="src/jarvis/cli/snapshot.py"/>
+    <interface name="jarvis snapshot restore" kind="CLI" signature="jarvis snapshot restore <id> -> bool" path="src/jarvis/cli/snapshot.py"/>
+    <interface name="jarvis reload config" kind="CLI" signature="jarvis reload config -> bool" path="src/jarvis/cli/reload.py"/>
+    <interface name="jarvis reload prompts" kind="CLI" signature="jarvis reload prompts -> bool" path="src/jarvis/cli/reload.py"/>
+    <interface name="jarvis restart --safe" kind="CLI" signature="jarvis restart --safe -> bool" path="src/jarvis/cli/reload.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Test snapshot creation/restore. Mock file system for snapshot storage. Test health check failure triggers rollback.</standards>
+    <locations>
+      <location>tests/unit/test_snapshot_manager.py</location>
+      <location>tests/unit/test_test_runner.py</location>
+      <location>tests/unit/test_hot_reload.py</location>
+      <location>tests/integration/test_snapshot_restore.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC1">Test snapshot creation captures expected state</idea>
+      <idea acId="AC4">Test snapshot restore reverts to captured state</idea>
+      <idea acId="AC7">Test auto-rollback on test failure</idea>
+      <idea acId="AC9">Test config hot-reload updates runtime config</idea>
+      <idea acId="AC13">Test LKG is always maintained and accessible</idea>
+      <idea acId="AC14">Test rollback triggers within 60s of health failure</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,21 @@
+{
+  "tools": [
+    "list_directory",
+    "read_file",
+    "write_file",
+    "replace",
+    "run_shell_command",
+    "glob"
+  ],
+  "servers": {
+    "jarvis": {
+      "transport": "http",
+      "url": "http://127.0.0.1:8001",
+      "endpoints": {
+        "ping": "/mcp/ping",
+        "health": "/mcp/health"
+      },
+      "description": "Local Jarvis MCP server exposed by src/jarvis/mcp_server.py"
+    }
+  }
+}

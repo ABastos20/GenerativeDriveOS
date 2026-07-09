@@ -1,0 +1,452 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>Scheduled Memory Compilation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-25</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/2-5-scheduled-memory-compilation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a strategist</asA>
+    <iWant>automated weekly insight jobs</iWant>
+    <soThat>I receive distilled knowledge from large conversation sets</soThat>
+    <tasks>
+      - Task 1: Implement memory compilation service (AC: #1, #3)
+        * Add jarvis.memory.compile module with compile_memories() function
+        * Query PostgreSQL for conversations within time range (--since filter)
+        * Aggregate conversation content for LLM summarization
+        * Call LLM to generate insight summary (pattern identification, key themes)
+        * Format output as structured Markdown with metadata headers
+        * Write to ~/.jarvis/knowledge/insights/{{date}}-insights.md
+      - Task 2: Add CLI command for memory compilation (AC: #1)
+        * Add jarvis memory compile command in src/jarvis/cli/memory.py
+        * Accept --since parameter (e.g., '7d' or ISO-8601 date)
+        * Optional --output parameter to override default insights directory
+        * Display progress and summary (conversations processed, tokens used, cost)
+      - Task 3: Integrate cost tracking and LLM routing (AC: #2)
+        * Use existing LLM provider infrastructure (if available) or stub cost tracking
+        * Log provider name, model, input/output tokens, and cost_usd
+        * Store cost data in PostgreSQL LLM usage tables (Story 2.1 schema)
+        * Emit structlog events with cost/provider metadata
+      - Task 4: Auto-ingestion of compiled insights (AC: #3)
+        * After writing insight Markdown, automatically trigger jarvis memory add
+        * Tag insights with domain="jarvis-insights" for filtering
+        * Ensure insights are searchable via jarvis memory search --source jarvis-insights
+      - Task 5: Cron configuration and error handling (AC: #4)
+        * Document cron job example in docs/cron-jobs.md or README
+        * Add graceful error handling (LLM API failures, database unavailable)
+        * Log errors to structlog with severity levels
+        * Exit codes: 0 for success, 1 for recoverable errors, 2 for fatal errors
+      - Task 6: Tests (AC: all)
+        * Unit tests for compile_memories() with mocked LLM and DB
+        * Unit tests for CLI command argument parsing
+        * Integration test: compile recent conversations, verify Markdown output
+        * Integration test: verify compiled insights are ingested and searchable
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given the cron job spec in docs, When `jarvis memory compile --since 7d` runs, Then it aggregates conversations, summarizes patterns via LLM, and writes Markdown to `~/.jarvis/knowledge/insights`.
+    2. Given the compilation job completes, When logs are reviewed, Then they include cost + provider data for auditing.
+    3. Given compiled insights exist, When they are stored, Then insights are saved as ingestion-ready Markdown documents that can be re-queried via the memory search API.
+    4. Given the cron schedule is configured, When the job runs automatically, Then it executes without manual intervention and handles errors gracefully.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 — Story 2.5</title>
+        <section>Scheduled Memory Compilation (lines 190-204)</section>
+        <snippet>
+As a strategist, I want automated weekly insight jobs, So that I receive distilled knowledge from large conversation sets.
+
+Prerequisites: Story 2.4
+Technical Notes: Reuse FR4.4 cron example; integrate with cost router for budget awareness; store compiled insights as ingestion-ready docs for re-query.
+
+Acceptance Criteria:
+- Given the cron job spec in docs, When `jarvis memory compile --since 7d` runs, Then it aggregates conversations, summarizes patterns via LLM, writes Markdown to `~/.jarvis/knowledge/insights`, And logs include cost + provider data for auditing.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>FR4.4 Memory Compilation (lines 763-767)</section>
+        <snippet>
+FR4.4 - Memory Compilation (Post-MVP)
+- Scheduled insight extraction from conversation history
+- Generate weekly/monthly summaries
+- Pattern detection across conversations
+
+Example cron job (line 519-521):
+#!/bin/bash
+# Weekly insight compilation cron job
+jarvis memory compile --since 7-days-ago --output /data/insights/$(date +%Y-%m-%d).md
+jarvis costs --month current >> /data/costs/$(date +%Y-%m).log
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>FR6.3 Cron Job Support (lines 801-805)</section>
+        <snippet>
+FR6.3 - Cron Job Support
+- JARVIS commands can be scheduled via cron
+- Background tasks log to structured files
+- Support for headless/non-interactive execution
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>API Endpoints (lines 534-540)</section>
+        <snippet>
+POST   /api/v1/memory/add          - Add document to memory
+POST   /api/v1/memory/compile      - Trigger insight compilation
+GET    /api/v1/costs               - Cost tracking
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>LLM Provider Configuration (lines 415-429)</section>
+        <snippet>
+llm_providers:
+  - name: openrouter
+    type: free_tier
+    api_key: ${OPENROUTER_API_KEY}
+  - name: together
+    type: free_tier
+    api_key: ${TOGETHER_API_KEY}
+  - name: openai
+    type: paid
+    api_key: ${OPENAI_API_KEY}
+
+Cost-First Routing: Maximizes free LLM tiers (OpenRouter, Together AI, etc.) before touching paid subscriptions, using simple "run until depleted, switch" routing with API-driven usage tracking.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Naming Conventions (lines 588-609)</section>
+        <snippet>
+Python Code:
+- Modules/Packages: lowercase_with_underscores (e.g., rag_engine.py, llm_router.py)
+- Classes: PascalCase (e.g., RAGEngine, LLMRouter, CouncilOfRicks)
+- Functions/Methods: snake_case (e.g., generate_embedding, route_to_provider)
+- Constants: UPPER_SNAKE_CASE (e.g., DEFAULT_CHUNK_SIZE, MAX_RETRIES)
+
+CLI Commands:
+- Top-level: jarvis {command} (e.g., jarvis ask, jarvis chat)
+- Subcommands: jarvis {noun} {verb} (e.g., jarvis memory add, jarvis agents list)
+- Flags: --kebab-case (e.g., --max-sources, --output-format)
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/2-4-memory-retrieval-filters-api.md</path>
+        <title>Previous Story 2.4</title>
+        <section>Completion Notes (lines 77-85)</section>
+        <snippet>
+- Implemented MemorySearchRequest, MemorySearchResult, and MemorySearchResponse in src/jarvis/api/schemas.py
+- Added /api/memory/search endpoint in src/jarvis/api/memory.py
+- Registered memory router in src/jarvis/api/app.py
+- Added unit test tests/unit/api/test_memory_search_api.py
+- Confirmed live retrieval in container returns jarvis-core snippets from persona.md and operating-manual.md
+        </snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/ingest.py</path>
+        <kind>module</kind>
+        <symbol>ingest_file, IngestionResult, chunk_text, default_embed</symbol>
+        <lines>1-203</lines>
+        <reason>Memory ingestion pipeline for auto-ingesting compiled insights. Use ingest_file() to add insights Markdown to Qdrant with domain="jarvis-insights". Returns IngestionResult with chunks/points written. Supports custom embed_fn and domain tagging.</reason>
+        <implementation>
+def ingest_file(
+    path: Path,
+    collection_name: str = qdrant.DEFAULT_COLLECTION_NAME,
+    embed_fn: Optional[EmbeddingFn] = None,
+    client: Optional["qdrant.QdrantClient"] = None,
+    domain: Optional[str] = None,
+) -> IngestionResult:
+    """Ingest a document into Qdrant with embeddings and metadata payload.
+
+    Args:
+        path: Path to document file
+        collection_name: Qdrant collection name (default: "knowledge")
+        embed_fn: Optional custom embedding function
+        client: Optional Qdrant client (creates new if None)
+        domain: Optional domain tag for payload (defaults to file extension)
+
+    Returns:
+        IngestionResult with collection name, chunk count, points written, vector size
+    """
+    # Converts to Markdown, chunks, embeds, upserts to Qdrant with payload:
+    # {text, source_file, section, domain, ingested_at, hash}
+        </implementation>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/config/settings.py</path>
+        <kind>module</kind>
+        <symbol>ProviderConfig, Settings, load_settings</symbol>
+        <lines>1-134</lines>
+        <reason>Configuration infrastructure for LLM providers. ProviderConfig tracks provider name, type (free_tier/paid), priority, model, and api_key_env. Settings.providers list used for cost-first routing. Load settings from config/settings.yaml.</reason>
+        <implementation>
+@dataclass
+class ProviderConfig:
+    name: str
+    type: str  # "free_tier" or "paid"
+    priority: int
+    model: Optional[str] = None
+    api_key_env: Optional[str] = None
+
+    def api_key(self) -> Optional[str]:
+        if self.api_key_env:
+            return os.environ.get(self.api_key_env)
+        return None
+
+@dataclass
+class Settings:
+    project_name: str
+    environment: str
+    workspace: WorkspaceConfig = field(default_factory=WorkspaceConfig)
+    providers: List[ProviderConfig] = field(default_factory=list)
+        </implementation>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>module</kind>
+        <symbol>Conversation, Message, LLMProvider, LLMUsageLog</symbol>
+        <lines>1-206</lines>
+        <reason>PostgreSQL ORM models for conversations, messages, and LLM cost tracking. Conversation has UUID primary key, user_id, created_at (UTC). Message has role, content, agent_persona, cost_usd, provider, model, token_count. LLMProvider tracks free-tier/paid providers with quota limits. LLMUsageLog stores per-message usage.</reason>
+        <implementation>
+class Conversation(Base):
+    """Top-level conversation container."""
+    __tablename__ = "conversations"
+    id: UUID = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Optional[str] = Column(String(255), nullable=True)
+    created_at: datetime = Column(DateTime(timezone=True), server_default=func.now())
+    messages: List["Message"] = relationship("Message", back_populates="conversation")
+
+class Message(Base):
+    """Individual message in a conversation."""
+    __tablename__ = "messages"
+    id: UUID
+    conversation_id: UUID
+    role: str  # user | assistant | system
+    content: str
+    agent_persona: Optional[str]
+    cost_usd: Optional[Decimal]
+    provider: Optional[str]
+    model: Optional[str]
+    token_count: Optional[int]
+
+class LLMProvider(Base):
+    """LLM provider registry for cost-first routing."""
+    __tablename__ = "llm_providers"
+    id: int
+    name: str  # "openrouter", "together", "openai"
+    type: str  # "free_tier" or "paid"
+    priority: int
+    quota_limit_tokens: Optional[int]
+    usage_count: int
+        </implementation>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/memory.py</path>
+        <kind>cli</kind>
+        <symbol>memory_search, memory_add, app (Typer)</symbol>
+        <lines>1-87</lines>
+        <reason>Existing memory CLI commands. Extend this file with new `jarvis memory compile` command. Follow patterns: Typer app, typer.Argument/Option for parameters, structlog events, typer.Exit for error codes. Use _parse_since() helper for date parsing.</reason>
+        <implementation>
+app = typer.Typer(help="Memory ingestion and retrieval commands.")
+
+@app.command("add")
+def memory_add(
+    path: Path = typer.Argument(..., exists=True, readable=True, help="Path to document to ingest"),
+    collection: str = typer.Option("knowledge", help="Qdrant collection name"),
+) -> None:
+    """Ingest a document into memory."""
+    result = ingest.ingest_file(path, collection_name=collection)
+    typer.echo(f"Ingested {result.chunks} chunk(s) into collection '{result.collection_name}'")
+    raise typer.Exit(code=0)
+
+@app.command("search")
+def memory_search(
+    query: str = typer.Argument(..., help="Natural language query"),
+    source: Optional[str] = typer.Option(None, help="Logical source/domain filter"),
+    since: Optional[str] = typer.Option(None, help="Optional time filter (e.g., '7d')"),
+    k: int = typer.Option(10, help="Number of results (1-50)"),
+) -> None:
+    """Search memory and print ranked snippets."""
+    # Implementation...
+        </implementation>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/memory.py</path>
+        <kind>api</kind>
+        <symbol>search_memory_endpoint, router</symbol>
+        <lines>1-54</lines>
+        <reason>FastAPI memory router. Optional: Add POST /api/memory/compile endpoint for triggering compilation via API. Follow existing patterns: APIRouter, Pydantic request/response models, HTTP 503 for service errors.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/memory/test_search.py</path>
+        <kind>tests</kind>
+        <symbol>unit tests for search_memory</symbol>
+        <lines>1-150</lines>
+        <reason>Unit test patterns for memory module. Mock Qdrant client, test empty query handling, validate results. Follow these patterns for test_compile.py.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="python" version="^3.13" />
+        <package name="fastapi" version="^0.115.0" />
+        <package name="typer" version="^0.12.0" extras="all" />
+        <package name="pydantic" version="^2.9.0" />
+        <package name="structlog" version="^24.1.0" />
+        <package name="sqlalchemy" version="^2.0.0" />
+        <package name="psycopg2-binary" version="^2.9.9" />
+        <package name="qdrant-client" version="1.15.1" pinned="true" />
+        <package name="sentence-transformers" version="^5.1.0" />
+        <package name="httpx" version="^0.27.0" description="For LLM API calls (if not using SDK)" />
+      </python>
+      <dev>
+        <package name="pytest" version="^8.3.0" />
+        <package name="pytest-cov" version="^6.0.0" />
+        <package name="pytest-asyncio" version="^0.24.0" />
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - LLM integration: If LLM router infrastructure doesn't exist, stub cost tracking for now; prioritize basic functionality over full cost routing
+    - Cost tracking: Store provider, model, token_count, cost_usd in PostgreSQL LLMUsageLog (Story 2.1 schema)
+    - Insights directory: Default to ~/.jarvis/knowledge/insights/, create if doesn't exist
+    - Markdown format: Include front matter with metadata (date range, conversation count, cost, provider)
+    - Query conversations: Use SQLAlchemy to query Conversation and Message tables within time range
+    - Auto-ingestion: Call ingest_file() directly with domain="jarvis-insights" after writing Markdown
+    - Cron compatibility: Support headless execution, log to files, proper exit codes
+    - Error handling: Graceful degradation for LLM API failures, database unavailable
+    - Domain tagging: Use "jarvis-insights" domain for compiled insights (distinct from "jarvis-core" and "jarvis-conversations")
+    - Structlog: Log metadata only (conversation_count, time_range, cost_usd, provider, duration_ms); avoid logging conversation content
+    - Time parsing: Reuse _parse_since() helper from memory.py for '7d' format and ISO-8601
+    - Knowledge base context: Current memory has 6,755 points (4 jarvis-core + ~4,989 jarvis-conversations); insights will add to this collection
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>jarvis memory compile</name>
+      <kind>CLI command</kind>
+      <signature>jarvis memory compile [OPTIONS] --since SINCE</signature>
+      <parameters>
+        --since: Time range (e.g., '7d' or ISO-8601 date) [required]
+        --output: Override default insights directory [optional]
+        --collection: Qdrant collection name (default: "knowledge") [optional]
+      </parameters>
+      <path>src/jarvis/cli/memory.py</path>
+      <description>Compiles conversations from specified time range, generates LLM summary, writes Markdown to insights directory, auto-ingests for search. Returns exit code 0 for success, 1 for errors.</description>
+    </interface>
+    <interface>
+      <name>compile_memories</name>
+      <kind>function</kind>
+      <signature>compile_memories(since: datetime, until: Optional[datetime] = None, output_dir: Optional[Path] = None) -> CompilationResult</signature>
+      <path>src/jarvis/memory/compile.py (new module)</path>
+      <description>Core compilation service. Queries conversations, aggregates content, calls LLM for summarization, formats Markdown, writes to file, triggers auto-ingestion. Returns CompilationResult with file path, conversation count, cost data.</description>
+    </interface>
+    <interface>
+      <name>ingest_file</name>
+      <kind>function</kind>
+      <signature>ingest_file(path: Path, collection_name: str = "knowledge", domain: Optional[str] = None) -> IngestionResult</signature>
+      <path>src/jarvis/memory/ingest.py</path>
+      <description>Existing ingestion function. Call with domain="jarvis-insights" to ingest compiled insights into Qdrant. Returns IngestionResult with chunks/points written.</description>
+    </interface>
+    <interface>
+      <name>Conversation.query</name>
+      <kind>SQLAlchemy model</kind>
+      <signature>session.query(Conversation).filter(Conversation.created_at >= since_date).all()</signature>
+      <path>src/jarvis/database/models.py</path>
+      <description>Query conversations within time range. Join with Message to get all content for aggregation. Filter by created_at column (timezone-aware UTC).</description>
+    </interface>
+    <interface>
+      <name>LLMUsageLog</name>
+      <kind>SQLAlchemy model</kind>
+      <signature>LLMUsageLog(message_id=..., provider=..., model=..., input_tokens=..., output_tokens=..., cost_usd=...)</signature>
+      <path>src/jarvis/database/models.py</path>
+      <description>Store LLM usage data for compilation job. Track provider, model, tokens, and cost_usd for auditing.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Follow pytest configuration in pyproject.toml; separate unit vs integration tests. Unit tests mock external dependencies (LLM APIs, database, file I/O); integration tests require Docker services (PostgreSQL, Qdrant). Use pytest fixtures for database sessions and Qdrant clients.</standards>
+    <locations>
+      - Unit tests: tests/unit/memory/test_compile.py (new), tests/unit/cli/test_memory_compile.py (new)
+      - Integration tests: tests/integration/memory/test_compile_integration.py (new)
+    </locations>
+    <ideas>
+      - AC1: Unit test compile_memories() with mocked database and LLM; verify Markdown output structure with front matter; test --since parameter parsing ('7d' and ISO-8601 formats); verify output file naming (date-based).
+      - AC2: Unit test cost tracking logs; mock LLMUsageLog insertion; verify structlog events include provider, model, cost_usd, token_count; test that logs don't contain conversation content (privacy).
+      - AC3: Integration test auto-ingestion; compile conversations, verify ingest_file() called with domain="jarvis-insights"; search via jarvis memory search --source jarvis-insights and confirm insights are returned.
+      - AC4: Unit test error handling (LLM API failure, database unavailable); verify graceful degradation, proper exit codes (0/1/2); test cron compatibility (headless execution, no interactive prompts).
+      - Edge cases: Empty time range (no conversations), LLM rate limiting, oversized aggregation (token limits), insights directory permissions.
+      - Performance: Mock LLM latency; verify compilation completes within reasonable time; test batching if conversation count is large.
+      - Markdown format validation: Verify front matter YAML structure; check metadata fields (date_range, conversation_count, cost_usd, provider); validate Markdown syntax.
+      - Time range filtering: Test boundary conditions (since = now, since = 1 year ago); verify timezone handling (UTC); test until parameter (optional).
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <storyStatus>drafted (ready for context generation)</storyStatus>
+    <previousStoryLearnings>
+      From Story 2-4-memory-retrieval-filters-api (Status: done):
+      - Memory Search API: /api/memory/search endpoint available - use to verify compiled insights are searchable
+      - Qdrant Collection: knowledge collection with 6,755 points - insights will add to this with domain="jarvis-insights"
+      - CLI Patterns: Follow jarvis memory search command structure (Typer, structlog, error handling)
+      - Domain Filtering: Use domain payload field for filtering (jarvis-core, jarvis-conversations, jarvis-insights)
+      - Pydantic Schemas: Extend src/jarvis/api/schemas.py if adding API endpoints
+      - Testing: Follow unit test patterns with mocked dependencies, integration tests require Docker
+      - Structlog: Avoid logging content; log metadata only (filters, counts, duration_ms, cost_usd)
+    </previousStoryLearnings>
+    <implementationGuidance>
+      Priority 1: Core compilation service (compile_memories function, conversation query, Markdown output)
+      Priority 2: CLI command (jarvis memory compile with --since parameter)
+      Priority 3: Auto-ingestion (call ingest_file with domain="jarvis-insights")
+      Priority 4: Cost tracking (LLMUsageLog integration, structlog events)
+      Priority 5: Cron documentation and error handling
+      Priority 6: Tests (unit + integration)
+
+      LLM Integration Options:
+      1. If LLM client library exists: Use existing infrastructure for provider routing and cost tracking
+      2. If no infrastructure: Stub with simple HTTP call to single provider (e.g., OpenRouter), log mock cost data
+      3. Defer full cost-first routing to Epic 5 (Story 5.1: Provider Registry)
+
+      Insights Markdown Format Example:
+      ```markdown
+      ---
+      date_range: "2025-11-18 to 2025-11-25"
+      conversation_count: 42
+      provider: "openrouter"
+      model: "anthropic/claude-sonnet-3.5"
+      cost_usd: 0.0234
+      generated_at: "2025-11-25T15:30:00Z"
+      domain: "jarvis-insights"
+      ---
+
+      # Weekly Insights: Nov 18-25, 2025
+
+      ## Key Themes
+
+      - **Memory System Development**: Focus on Qdrant integration, ingestion pipeline, and search API
+      - **Testing Strategy**: Emphasis on unit vs integration test separation, Docker requirement
+      - **Architecture Decisions**: Cost-first LLM routing, domain-based filtering
+
+      ## Emerging Patterns
+
+      ...
+      ```
+    </implementationGuidance>
+  </implementation_notes>
+</story-context>

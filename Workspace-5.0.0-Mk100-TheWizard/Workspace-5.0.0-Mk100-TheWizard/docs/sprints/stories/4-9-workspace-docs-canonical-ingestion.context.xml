@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story_context>
+  <metadata>
+    <story_id>4-9</story_id>
+    <title>Workspace Docs Canonical Ingestion</title>
+    <epic>4</epic>
+    <epic_name>ARCHES Stabilization & Cognitive Layer</epic_name>
+    <status>done</status>
+    <completed>2025-12-05</completed>
+    <priority>critical</priority>
+  </metadata>
+
+  <story_details>
+    <description>
+      Implement canonical ingestion of all Workspace docs with proper domain/tag/flag/semantic_family
+      classification. Establishes hybrid plane architecture: System plane (jarvis-core) vs Corpus plane.
+    </description>
+    <business_value>
+      Foundation for Jarvis semantic operating system. Enables clean separation between
+      "how Jarvis thinks" (system) and "what Jarvis knows" (corpus). Prevents system leakage
+      into normal QA while preserving introspection capability.
+    </business_value>
+  </story_details>
+
+  <acceptance_criteria>
+    <criterion id="AC1" status="done">ingest_workspace_docs.py classifies all docs with domain/tags/meta/semantic_family</criterion>
+    <criterion id="AC2" status="done">docs/jarvis/* marked as System Plane: is_system=true, semantic_family=core-memory</criterion>
+    <criterion id="AC3" status="done">docs/jarvis/playbooks/* marked as Corpus Plane: is_system=false, semantic_family=playbook</criterion>
+    <criterion id="AC4" status="done">docs/archive/* marked as stale: is_latest=false, semantic_family=archive</criterion>
+    <criterion id="AC5" status="done">_build_filter() excludes is_system=true by default</criterion>
+    <criterion id="AC6" status="done">domain=jarvis-core forces include</criterion>
+    <criterion id="AC7" status="done">include_system_docs=True param for meta queries</criterion>
+    <criterion id="AC8" status="done">semantic_family field on all documents</criterion>
+  </acceptance_criteria>
+
+  <code_artifacts>
+    <artifact type="script" path="scripts/ingest_workspace_docs.py">
+      <purpose>Classify and ingest all Workspace docs with canonical taxonomy</purpose>
+      <key_function>classify_document(path) -> (domain, tags, meta)</key_function>
+    </artifact>
+    <artifact type="module" path="src/jarvis/memory/search.py">
+      <purpose>Retrieval with is_system filter</purpose>
+      <key_function>_build_filter(domains, tags, include_stale, include_system_docs)</key_function>
+    </artifact>
+  </code_artifacts>
+
+  <semantic_families>
+    <family name="core-memory" domain="jarvis-core" plane="SYSTEM" priority="1.0"/>
+    <family name="playbook" domain="jarvis-playbooks" plane="CORPUS" priority="0.8"/>
+    <family name="architecture" domain="architecture" plane="CORPUS" priority="0.9"/>
+    <family name="archive" domain="archive" plane="CORPUS" priority="0.2"/>
+    <family name="feature" domain="features" plane="CORPUS" priority="0.75"/>
+    <family name="session-log" domain="sessions" plane="CORPUS" priority="0.5"/>
+    <family name="story" domain="story" plane="CORPUS" priority="0.6"/>
+    <family name="epic" domain="epic" plane="CORPUS" priority="0.7"/>
+    <family name="process" domain="process" plane="CORPUS" priority="0.5"/>
+    <family name="llm" domain="llm" plane="CORPUS" priority="0.6"/>
+  </semantic_families>
+
+  <failure_modes>
+    <failure_mode id="FM1" name="System Leakage into Normal QA">
+      <risk>If _build_filter forgets must_not(is_system=true), user gets raw internal spec in normal QA</risk>
+      <mitigation status="done">Centralized filter construction in _build_qdrant_filter</mitigation>
+      <mitigation status="todo">Unit test: assert is_system excluded in QA mode</mitigation>
+      <mitigation status="todo">Answer composition: drop/downweight jarvis-core in normal QA</mitigation>
+    </failure_mode>
+    <failure_mode id="FM2" name="Inability to Introspect">
+      <risk>Over-filter makes it impossible to answer "summarise memory.core.md"</risk>
+      <mitigation status="done">include_system_docs=True path</mitigation>
+      <mitigation status="done">domain=jarvis-core forces include</mitigation>
+      <mitigation status="todo">Meta router heuristic on controller</mitigation>
+    </failure_mode>
+  </failure_modes>
+
+  <validation_tests>
+    <test id="T1" name="Normal Domain QA">
+      <query>Explain the hydrogen water loop concept in GD</query>
+      <expected>playbooks + GD docs, NO jarvis-core</expected>
+    </test>
+    <test id="T2" name="Architecture QA">
+      <query>How is Jarvis's memory architecture designed?</query>
+      <expected>architecture docs, maybe epic-4.5, NOT memory.core</expected>
+    </test>
+    <test id="T3" name="Hard Meta Core">
+      <query>Summarise memory.core.md in 5 bullets</query>
+      <mode>include_system_docs=True</mode>
+      <expected>only core docs</expected>
+    </test>
+    <test id="T4" name="Historical Plan">
+      <query>What was the original PRD for Jarvis before Epic 4?</query>
+      <mode>allow_stale=True</mode>
+      <expected>docs/archive/prd-original.md visible</expected>
+    </test>
+    <test id="T5" name="Session Introspection">
+      <query>What happened in the BREAKTHROUGH session on 2025-12-03?</query>
+      <expected>sessions domain, specific session log</expected>
+    </test>
+  </validation_tests>
+
+  <references>
+    <reference type="canonical" path="docs/datasetRules/dataSetRules.md"/>
+    <reference type="brainstorming" path="docs/sessions/brainstorming-session-improve-ingestion-core-2025-12-05.md"/>
+    <reference type="observations" path="docs/datasetRules/dataSetIngestionObservations.md"/>
+    <reference type="refinement" path="docs/datasetRules/ingest_Workspace_docs_refinement,md"/>
+  </references>
+
+  <notes>
+    Vision, not Ultron. System plane = how Jarvis thinks. Corpus plane = what Jarvis knows.
+    semantic_family is the hook for next-stage cognitive governance.
+  </notes>
+</story_context>

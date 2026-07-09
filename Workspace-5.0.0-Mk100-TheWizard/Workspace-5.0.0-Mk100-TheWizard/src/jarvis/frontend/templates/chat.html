@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jarvis Chat (BMAD)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/chat.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="sidebar-header">Conversations</div>
+          <button type="button" class="pill" id="new-chat-btn">+ New</button>
+          
+          <!-- Search input -->
+          <div style="padding:6px 8px;">
+            <input type="text" id="convo-search" placeholder="Search conversations... (Ctrl+F)" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:var(--text-main);font-size:12px;" aria-label="Search conversations">
+          </div>
+          
+          <!-- Advanced Filters -->
+          <div style="padding:0 8px 6px;display:grid;gap:4px;">
+            <div style="display:flex;gap:4px;">
+              <select id="convo-sort" style="flex:1;padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:var(--text-main);font-size:11px;" aria-label="Sort conversations">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="most-messages">Most Messages</option>
+              </select>
+              <select id="convo-date-filter" style="flex:1;padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:var(--text-main);font-size:11px;" aria-label="Filter by date">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+            </div>
+            <select id="convo-persona-filter" style="width:100%;padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:var(--text-main);font-size:11px;" aria-label="Filter by persona">
+              <option value="all">All Personas</option>
+              <option value="Rickiest Rick">Rickiest Rick</option>
+              <option value="Supportive Rick">Supportive Rick</option>
+              <option value="Chaotic Rick">Chaotic Rick</option>
+              <option value="Balanced Rick">Balanced Rick</option>
+            </select>
+          </div>
+          
+          <div id="conversation-list" class="convo-list"></div>
+          <button type="button" class="pill" id="load-more-convos" style="width:100%;margin-top:6px;display:none;">Load More...</button>
+        </aside>
+        <main class="main">
+          <div class="header">
+            <div class="status-dot"></div>
+            <div class="title-block">
+              <div class="title">Jarvis BMAD Console</div>
+              <div class="subtitle">Autonomous Grounding Intelligence | RAG + Memory + Intent Analysis</div>
+            </div>
+            <div class="badge" id="status-pill">Connected | memory+llm</div>
+          </div>
+          <div class="chat-container">
+            <div id="research-progress" class="research-progress" aria-live="polite">
+              <h4>Research Mode</h4>
+              <div class="progress-track">
+                <div id="research-progress-fill" class="progress-fill"></div>
+              </div>
+              <div class="progress-meta">
+                <span id="research-stage-label" class="stage-chip">Idle</span>
+                <span id="research-percent">0%</span>
+                <span id="research-eta">ETA: --s</span>
+                <button type="button" id="cancel-research-btn" aria-label="Cancel active research">
+                  Cancel
+                </button>
+              </div>
+            </div>
+            <div id="messages" class="messages"></div>
+            <div id="sr-announcer" class="sr-announcer" aria-live="polite"></div>
+            <div id="doc-viewer" class="doc-viewer" role="dialog" aria-modal="true" aria-label="Document viewer">
+              <div class="doc-panel">
+                <header>
+                  <h3 id="doc-title">Document</h3>
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <button type="button" id="open-doc-tab-btn">Open in new tab</button>
+                    <button type="button" id="close-doc-btn">Close</button>
+                  </div>
+                </header>
+                <div class="doc-body" id="doc-body">Loading...</div>
+              </div>
+            </div>
+            <div class="insights-panel" aria-live="polite">
+              <div class="info-card">
+                <div class="info-card-header" id="research-history-header" data-panel="history">
+                  <div class="info-card-title">Research History <span class="chevron">▼</span></div>
+                  <div style="display:flex;gap:4px;align-items:center;">
+                    <button type="button" id="refresh-history-btn" class="pill" aria-label="Refresh research history" onclick="event.stopPropagation()">↻</button>
+                    <button type="button" id="export-history-btn" class="pill" aria-label="Export research history CSV" onclick="event.stopPropagation()">⇩ CSV</button>
+                  </div>
+                </div>
+                <div class="info-card-body open">
+                  <div class="history-filters">
+                    <label>
+                      <span class="convo-meta">Window:</span>
+                      <select id="history-window">
+                        <option value="7">7d</option>
+                        <option value="30" selected>30d</option>
+                        <option value="90">90d</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span class="convo-meta">Gap:</span>
+                      <select id="history-gap-filter">
+                        <option value="all" selected>All</option>
+                        <option value="coverage_gap">Coverage</option>
+                        <option value="recency_gap">Recency</option>
+                        <option value="contradictory">Contradictory</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div id="history-list" class="history-list">
+                    <div class="convo-meta">Loading research history…</div>
+                  </div>
+                  <canvas id="history-chart" height="120" aria-label="Research sessions over time"></canvas>
+                  <canvas id="gap-chart" height="120" aria-label="Gap distribution"></canvas>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-header" id="smart-suggestions-header" data-panel="suggestions">
+                  <div class="info-card-title">Smart Suggestions <span class="chevron">▼</span></div>
+                  <button type="button" id="clear-suggestions-btn" class="pill" aria-label="Clear suggestions" onclick="event.stopPropagation()">Clear</button>
+                </div>
+                <div class="info-card-body open">
+                  <div id="suggestions" class="history-list"></div>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-header" id="research-health-header" data-panel="health">
+                  <div class="info-card-title">Research Health <span class="chevron">▼</span></div>
+                  <span class="badge-gap stale" id="research-health-status">Idle</span>
+                </div>
+                <div class="info-card-body open health-card">
+                  <div class="health-row">
+                    <span>Rate limit</span>
+                    <span id="health-rate-label">0%</span>
+                  </div>
+                  <div class="health-bar">
+                    <div id="health-rate-bar" class="health-bar-fill"></div>
+                  </div>
+                  <div class="health-row">
+                    <span>Cost cap</span>
+                    <span id="health-cost-label">0%</span>
+                  </div>
+                  <div class="health-bar">
+                    <div id="health-cost-bar" class="health-bar-fill"></div>
+                  </div>
+                  <button type="button" id="retry-btn" class="pill" aria-label="Retry last query" style="justify-self:flex-start;">Retry last</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="input-shell">
+            <form id="chat-form">
+              <div class="input-row">
+                <div class="textarea-wrap">
+                  <textarea
+                    id="input"
+                    rows="1"
+                    placeholder="Ask Jarvis anything about thisworkspace, BMAD stories, or architecture..."
+                    aria-label="Chat input"
+                  ></textarea>
+                </div>
+                <button type="submit" class="send-btn" id="send-btn">
+                  <span>Send</span>
+                  <span>↩︎</span>
+                </button>
+              </div>
+              <div class="hint-row">
+                <span>
+                  New chat auto-creates a conversation & stores history in Postgres.
+                </span>
+                <span>
+                  <span class="controls">
+                    <span class="pill">
+                      <label>
+                        <input type="checkbox" id="auto-grounding" checked aria-label="Auto grounding" />
+                        🧠 auto
+                      </label>
+                    </span>
+                    <span class="pill">
+                      <label>
+                        <input type="checkbox" id="show-confidence" aria-label="Show confidence" />
+                        📊 confidence
+                      </label>
+                    </span>
+                    <span class="pill">
+                      <label>
+                        <input type="checkbox" id="enable-research" aria-label="Enable research" />
+                        🔬 research
+                      </label>
+                    </span>
+                    <span class="pill">
+                      <label>
+                        <button type="button" id="research-settings-btn" class="pill" style="border:none;background:transparent;color:var(--text-main);cursor:pointer;padding:0 4px;">⚙️ settings</button>
+                      </label>
+                    </span>
+                    <!-- Removed redundant source-input - domain filtering now via checkboxes -->
+                    <span class="pill" aria-label="Domain filter">
+                      <button type="button" id="domain-select-btn" style="background:transparent;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;padding:0 4px;">
+                        📁 Domains (<span id="selected-domains-count">0</span>)
+                      </button>
+                    </span>
+                    <span class="pill" aria-label="Tags filter">
+                      <button type="button" id="tags-select-btn" style="background:transparent;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;padding:0 4px;">
+                        🏷️ Tags (<span id="selected-tags-count">0</span>)
+                      </button>
+                    </span>
+                  </span>
+                </span>
+              </div>
+              <!-- Active Filters Mini-Bar -->
+              <div id="active-filters-bar" style="display:none;margin-top:8px;padding:8px;background:rgba(15,23,42,0.5);border:1px solid var(--border-subtle);border-radius:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0;max-width:calc(100% - 80px);" id="active-filter-chips"></div>
+                  <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button type="button" id="clear-all-filters" style="font-size:11px;padding:4px 8px;background:transparent;border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-muted);cursor:pointer;">Clear All</button>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-panel" id="domain-selector-panel" style="display:none;max-height:350px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <h4 style="margin:0;">Select Domains</h4>
+                  <button type="button" id="close-domain-panel" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 4px;" title="Close">×</button>
+                </div>
+                <input type="text" id="domain-search" placeholder="Search domains..." style="width:100%;padding:6px 8px;margin-bottom:8px;background:var(--bg);border:1px solid var(--border-subtle);border-radius:6px;color:var(--text-main);font-size:12px;"/>
+                <div id="domain-checkboxes" style="max-height:220px;overflow-y:auto;padding:4px;"></div>
+                <div style="margin-top:10px;display:flex;gap:6px;justify-content:flex-end;">
+                  <button type="button" id="clear-domains" class="pill" style="font-size:11px;">Clear All</button>
+                  <button type="button" id="apply-domains" class="pill" style="font-size:11px;background:var(--accent);color:#000;">Apply</button>
+                </div>
+              </div>
+              <div class="settings-panel" id="tags-selector-panel" style="display:none;max-height:350px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <h4 style="margin:0;">Select Tags</h4>
+                  <button type="button" id="close-tags-panel" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 4px;" title="Close">×</button>
+                </div>
+                <input type="text" id="tags-search" placeholder="Search tags..." style="width:100%;padding:6px 8px;margin-bottom:8px;background:var(--bg);border:1px solid var(--border-subtle);border-radius:6px;color:var(--text-main);font-size:12px;"/>
+                <div id="tags-checkboxes" style="max-height:220px;overflow-y:auto;padding:4px;"></div>
+                <div style="margin-top:10px;display:flex;gap:6px;justify-content:flex-end;">
+                  <button type="button" id="clear-tags" class="pill" style="font-size:11px;">Clear All</button>
+                  <button type="button" id="apply-tags" class="pill" style="font-size:11px;background:var(--accent);color:#000;">Apply</button>
+                </div>
+              </div>
+              <div class="settings-panel" id="research-settings">
+                <h4>Research Settings</h4>
+                <div class="field">
+                  <label>
+                    Coverage threshold
+                    <input type="range" id="coverage-threshold" min="0" max="1" step="0.05" value="0.6" aria-label="Coverage threshold" />
+                    <span id="coverage-threshold-value">0.60</span>
+                  </label>
+                </div>
+                <div class="field">
+                  <label>
+                    Max queries
+                    <input type="range" id="max-queries" min="1" max="10" step="1" value="5" aria-label="Max queries" />
+                    <span id="max-queries-value">5</span>
+                  </label>
+                </div>
+                <div class="field">
+                  <label>
+                    Cost cap ($)
+                    <input type="number" id="cost-cap" min="0.1" max="5" step="0.1" value="0.5" aria-label="Cost cap in dollars" />
+                  </label>
+                </div>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+
+      <!-- Trace Viewer Modal (AC6 - Story 4.5.7) -->
+      <div id="trace-modal" class="trace-modal" style="display:none;">
+        <div class="trace-modal-overlay"></div>
+        <div class="trace-modal-content">
+          <div class="trace-modal-header">
+            <h3>🧠 Cognitive Trace</h3>
+            <button type="button" id="close-trace-modal" class="trace-modal-close">×</button>
+          </div>
+          <div class="trace-modal-body" id="trace-modal-body">
+            <div class="trace-loading">Loading trace...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/static/js/chat.js"></script>
+  </body>
+</html>

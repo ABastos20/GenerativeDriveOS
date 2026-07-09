@@ -1,0 +1,10 @@
+__pycache__/
+.env
+config/settings.yaml
+*.pyc
+workspace_postgres-data/
+docker/docker
+
+# Antigravity workspace (temp files only)
+.antigravity/memory/
+.antigravity/*.tmp

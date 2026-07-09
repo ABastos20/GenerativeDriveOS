@@ -1,0 +1,92 @@
+================================================================================
+POSTGRESQL INDEX VERIFICATION REPORT
+================================================================================
+
+1. CUSTOM INDEXES (idx_*):
+--------------------------------------------------------------------------------
+  ✅ documents                 | idx_documents_domain
+  ✅ documents                 | idx_documents_domain_timestamp
+  ✅ documents                 | idx_documents_is_latest
+  ✅ temporal_chunks           | idx_temporal_chunks_domain
+  ✅ temporal_chunks           | idx_temporal_chunks_supersedes
+
+  Total custom indexes: 5
+
+2. ALL TABLES IN DATABASE:
+--------------------------------------------------------------------------------
+  agent_personas                 | 80 kB
+  alembic_version                | 24 kB
+  cognitive_traces               | 56 kB
+  conversation_primary_docs      | 48 kB
+  conversations                  | 56 kB
+  documents                      | 968 kB
+  domain_snapshots               | 24 kB
+  knowledge_domains              | 72 kB
+  llm_providers                  | 40 kB
+  llm_usage_log                  | 120 kB
+  messages                       | 328 kB
+  research_logs                  | 80 kB
+  system_snapshots               | 32 kB
+  temporal_chunks                | 56 kB
+
+3. DOCUMENTS TABLE - INDEX USAGE TEST:
+--------------------------------------------------------------------------------
+  Limit  (cost=0.15..2.37 rows=1 width=555)
+    ->  Index Scan using idx_documents_domain_timestamp on documents  (cost=0.15..2.37 rows=1 width=555)
+          Index Cond: (((domain)::text = 'test'::text) AND (created_at > (now() - '7 days'::interval)))
+
+4. HIGH-CARDINALITY COLUMNS (candidates for indexes):
+--------------------------------------------------------------------------------
+
+5. EXISTING INDEXES ON KEY TABLES:
+--------------------------------------------------------------------------------
+
+  documents:
+    - documents_pkey
+    - idx_documents_domain
+    - idx_documents_domain_timestamp
+    - idx_documents_is_latest
+    - ix_documents_created_at
+    - ix_documents_doc_key
+    - ix_documents_doc_key_is_latest
+    - ix_documents_is_latest
+
+  temporal_chunks:
+    - idx_temporal_chunks_domain
+    - idx_temporal_chunks_supersedes
+    - ix_temporal_chunks_content_hash
+    - ix_temporal_chunks_created_at
+    - ix_temporal_chunks_supersedes
+    - temporal_chunks_pkey
+
+  research_logs:
+    - ix_research_logs_conversation_id
+    - ix_research_logs_created_at
+    - ix_research_logs_message_id
+    - research_logs_pkey
+
+  cognitive_traces:
+    - cognitive_traces_pkey
+    - cognitive_traces_trace_id_key
+    - ix_cognitive_traces_created_at
+    - ix_cognitive_traces_session_id
+    - ix_cognitive_traces_severity
+    - ix_cognitive_traces_trace_id
+
+  messages:
+    - ix_messages_conversation_id
+    - ix_messages_created_at
+    - ix_messages_memory_attribution
+    - messages_pkey
+
+6. TABLE ROW COUNTS:
+--------------------------------------------------------------------------------
+  documents                      |    140 rows
+  temporal_chunks                |      0 rows
+  research_logs                  |     14 rows
+  cognitive_traces               |      0 rows
+  messages                       |     96 rows
+
+================================================================================
+VERIFICATION COMPLETE
+================================================================================

@@ -1,0 +1,135 @@
+<story-context id="4-5-2-agent-memory-attribution" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.2</storyId>
+    <title>Agent Memory Attribution</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-2-agent-memory-attribution.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis user debugging persona disagreements</asA>
+    <iWant>each agent's response to include which memory chunks, domains, and sources it used</iWant>
+    <soThat>I can understand why agents gave different answers and trace their reasoning to specific documents</soThat>
+    <tasks>
+      <task id="1">Enhance AgentResponse dataclass with chunks_used, domains_accessed, sources, memory_freshness</task>
+      <task id="2">Modify invoke_personas_parallel() to pass chunks and track usage</task>
+      <task id="3">Update voting and consensus to store attribution in transcript</task>
+      <task id="4">Format chunk/domain info in CLI --show-all output</task>
+      <task id="5">Include attribution in API chat response schema</task>
+      <task id="6">Add memory_attribution JSONB column to messages table with migration</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">AgentResponse extended with chunks_used, domains_accessed, sources, memory_freshness</criterion>
+    <criterion id="2">invoke_personas_parallel() passes chunk context to each agent</criterion>
+    <criterion id="3">Context includes chunk IDs for attribution tracking</criterion>
+    <criterion id="4">Agent responses parsed to extract which chunks were actually cited</criterion>
+    <criterion id="5">Voting transcript includes per-agent memory attribution</criterion>
+    <criterion id="6">CLI --show-all displays agent-specific chunk usage</criterion>
+    <criterion id="7">API /api/chat returns agent attribution in response JSON</criterion>
+    <criterion id="8">Database stores memory_attribution JSONB per message</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.2: Agent Memory Attribution</section>
+        <snippet>Attach memory chunk IDs, domains, and sources to each agent's response for full traceability.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/agents/parallel_invocation.py</path>
+        <kind>service</kind>
+        <symbol>invoke_personas_parallel</symbol>
+        <reason>Primary function to modify - add chunk tracking</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/agents/consensus.py</path>
+        <kind>service</kind>
+        <symbol>WeightedChaosVoting</symbol>
+        <reason>Voting transcript needs to include attribution</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <reason>API response needs to include attribution</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>command</kind>
+        <symbol>query_command</symbol>
+        <reason>CLI --show-all output formatting</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>model</kind>
+        <symbol>Message</symbol>
+        <reason>Add memory_attribution JSONB column</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/schemas.py</path>
+        <kind>schema</kind>
+        <symbol>ChatResponse</symbol>
+        <reason>Include attribution in response schema</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version=">=2.0" reason="JSONB column support"/>
+        <package name="alembic" version=">=1.13" reason="Database migration"/>
+        <package name="re" version="stdlib" reason="Citation parsing from response"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Citation extraction should be regex-based, not LLM-based for performance</constraint>
+    <constraint>Use existing [N] format matching current citation behavior</constraint>
+    <constraint>Attribution JSON structure must be consistent across API and DB</constraint>
+    <constraint>Alembic migration required for messages table change</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>AgentResponse</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass AgentResponse: persona_name, content, confidence, chunks_used: List[str], domains_accessed: List[str], sources: List[str], memory_freshness: float</signature>
+      <path>src/jarvis/agents/response.py</path>
+    </interface>
+    <interface>
+      <name>_build_attributed_context</name>
+      <kind>function</kind>
+      <signature>def _build_attributed_context(context: str, chunks: List[Any]) -> str</signature>
+      <path>src/jarvis/agents/parallel_invocation.py</path>
+    </interface>
+    <interface>
+      <name>_extract_used_chunks</name>
+      <kind>function</kind>
+      <signature>def _extract_used_chunks(content: str, chunks: List[Any]) -> List[Any]</signature>
+      <path>src/jarvis/agents/parallel_invocation.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Mock LLM responses for agent tests. Verify attribution propagates through full flow.</standards>
+    <locations>
+      <location>tests/unit/agents/test_memory_attribution.py</location>
+      <location>tests/integration/agents/test_agent_attribution_e2e.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test AgentResponse dataclass with new fields</idea>
+      <idea ac="3,4">Test citation extraction with regex</idea>
+      <idea ac="5">Test voting transcript includes attribution</idea>
+      <idea ac="7">Test API response includes attribution JSON</idea>
+      <idea ac="8">Test DB migration and JSONB storage</idea>
+    </ideas>
+  </tests>
+</story-context>

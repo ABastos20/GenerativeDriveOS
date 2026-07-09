@@ -1,0 +1,346 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3</storyId>
+    <title>Query Expansion &amp; Multi-Query Fusion</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-28</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/3-3-query-expansion-multi-query-fusion.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>researcher</asA>
+    <iWant>automatic query expansion</iWant>
+    <soThat>ambiguous prompts still retrieve relevant knowledge</soThat>
+    <tasks>
+**Task 1:** Implement query expansion generator (AC: #1, #2)
+  - Create `src/jarvis/memory/query_expander.py` module
+  - Implement heuristic expansion strategy (synonym replacement, question reformulation patterns)
+  - Optional: Add lightweight local LLM expansion (e.g., using sentence-transformers for paraphrase generation)
+  - Limit expansions to configurable N (default 2), validate N in range [0, 5]
+  - Add timeout/latency guards to ensure &lt;2s P95 overall query time
+
+**Task 2:** Multi-query retrieval and fusion (AC: #1, #3)
+  - Extend `src/jarvis/memory/search.py` with `expanded_search()` function
+  - Execute semantic/hybrid search for original query + each expansion in parallel (asyncio or threading)
+  - Implement Reciprocal Rank Fusion (RRF) algorithm to merge results: `score(d) = Σ 1/(k + rank_i(d))` where k=60 (typical RRF constant)
+  - Deduplicate results by chunk_id/message_id + domain (same logic as Story 3.2 hybrid search)
+  - Sort merged results by fused score, return top-k to user
+
+**Task 3:** CLI parameter and configuration (AC: #2, #5)
+  - Add `--expand` flag to `jarvis query` (integer, default from config, 0 disables expansion)
+  - Add `query.enable_expansion: bool` and `query.expansion_count: int` to `src/jarvis/config/settings.py` QueryConfig
+  - Update `config/settings.example.yaml` with expansion defaults
+  - Validate parameter range [0, 5], provide clear error message for invalid values
+  - Update CLI help text with expansion examples
+
+**Task 4:** Telemetry and logging (AC: #4)
+  - Add structured logging to query expansion flow using `structlog`
+  - Log: `original_query`, `generated_expansions[]`, `expansion_results_count[]`, `fusion_strategy`, `total_latency_ms`
+  - Ensure logs are written to `~/.jarvis/logs/jarvis.log` with INFO level
+  - Include expansion stats in `--json-output` response envelope (optional metadata field)
+
+**Task 5:** Tests (AC: all)
+  - Unit tests for `query_expander.py`: heuristic expansion logic, N validation, latency constraints
+  - Unit tests for RRF algorithm: score calculation, deduplication, ranking
+  - Unit tests for CLI parameter validation: `--expand` range checking, config overrides
+  - Integration test: expanded search with real Qdrant + PostgreSQL, verify merged results
+  - Integration test: verify expansion logging contains all required fields
+  - Performance test: measure P95 latency with expansion enabled, ensure &lt;2s
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** query expansion is enabled, **When** the user asks a vague question, **Then** the system generates alternate phrasings, retrieves for each, and fuses results with deduplication.
+
+2. **Given** query expansion is configured, **When** the user specifies `--expand N` or uses default config, **Then** the system generates N alternative phrasings (configurable, default 2-3), respecting latency budget (&lt;2s P95).
+
+3. **Given** multiple query expansions are executed, **When** results are retrieved from each variant, **Then** the system merges and deduplicates results using reciprocal rank fusion or similar algorithm, preserving top-k relevant chunks.
+
+4. **Given** query expansion is active, **When** telemetry logging is enabled, **Then** the system logs: original query, generated expansions, per-expansion result counts, fusion strategy used, and total latency.
+
+5. **Given** query expansion configuration, **When** the user disables expansion or sets `--expand 0`, **Then** the system uses the original query without expansion (backwards compatible with Story 3.2).
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>JARVIS System - Product Requirements Document</title>
+        <section>FR1.3 - Query Expansion</section>
+        <snippet>Automatically generate alternative phrasings of query. Multi-query retrieval with result fusion. Improves recall for ambiguous or underspecified queries.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>FR1: RAG Query System (lines 213-214)</section>
+        <snippet>RAG engine, Vector store (Qdrant), Embeddings, Chunking at src/jarvis/core/rag_engine.py, src/jarvis/core/vector_store.py, src/jarvis/chunking/</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Logging Strategy (lines 692-729)</section>
+        <snippet>Structured logging with structlog: logger.info("RAG query completed", query=..., sources_found=5, cost_usd=0.002, provider="openrouter", duration_ms=450)</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Configuration Management (lines 760-779)</section>
+        <snippet>pydantic-settings + YAML: JarvisConfig with Field validation, .env for secrets, ~/.jarvis/config.yaml for structure</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System - Architecture Document</title>
+        <section>Testing Strategy (lines 789-824)</section>
+        <snippet>pytest with fixtures, unit/integration/e2e tests, @pytest.fixture pattern, pytest --cov=jarvis --cov-report=html</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/3-2-hybrid-retrieval-toggle.md</path>
+        <title>Story 3.2: Hybrid Retrieval Toggle</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Reuse patterns: Memory Search Service (src/jarvis/memory/search.py) with SearchResult dataclass, CLI extension pattern (--retriever, --weight params), QueryConfig dataclass in settings.py, deduplication by chunk_id + domain, Qdrant query_points API (not deprecated search)</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>JARVIS Epics - MVP Implementation</title>
+        <section>Story 3.3: Query Expansion &amp; Multi-Query Fusion</section>
+        <snippet>Use cheap local LLM or heuristics for expansions; limit to configurable N to fit latency budgets (&lt;2s P95). Prerequisites: Story 3.2.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>CLI command</kind>
+        <symbol>query()</symbol>
+        <lines>16-26</lines>
+        <reason>Existing CLI command to extend with --expand parameter. Already has --retriever, --weight, --strict-mode parameters. Uses load_settings() for config defaults (lines 44-47).</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service module</kind>
+        <symbol>SearchResult, search_memory(), hybrid_search()</symbol>
+        <lines>25-32</lines>
+        <reason>Core memory search service. SearchResult dataclass is the return type for all search functions. Need to add expanded_search() function that calls existing search functions in parallel and merges results.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>function</kind>
+        <symbol>_embed_query()</symbol>
+        <lines>35-41</lines>
+        <reason>Embedding function uses sentence-transformers/all-MiniLM-L6-v2. Will be called for each query expansion variant. Already optimized for performance.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/config/settings.py</path>
+        <kind>configuration class</kind>
+        <symbol>QueryConfig</symbol>
+        <lines>44-47</lines>
+        <reason>Existing QueryConfig dataclass has default_retriever, default_weight, default_strict_mode. Need to add enable_expansion: bool and expansion_count: int fields.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/memory/test_search.py</path>
+        <kind>test file</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Existing unit tests for memory search. Add tests for query expansion and RRF fusion following same mock pattern (patch search_memory, hybrid_search).</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/cli/test_query.py</path>
+        <kind>test file</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Existing CLI tests. Add tests for --expand parameter validation, range checking, config overrides.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sentence-transformers" version="^5.1.0">Used for embedding generation. May optionally use for paraphrase generation (query expansion with local LLM).</package>
+        <package name="structlog" version="^24.1.0">Structured logging for expansion telemetry (original_query, expansions, fusion_strategy, latency).</package>
+        <package name="typer" version="^0.12.0">CLI framework. Add --expand parameter with type hints and validation.</package>
+        <package name="pydantic" version="^2.9.0">Dataclass validation for QueryConfig fields.</package>
+        <package name="pytest" version="^8.3.0">Unit and integration testing framework.</package>
+        <package name="qdrant-client" version="1.15.1">Vector search for each query expansion variant.</package>
+        <package name="sqlalchemy" version="^2.0.0">PostgreSQL keyword search for hybrid retrieval in expansions.</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+**Performance:**
+- P95 latency must remain &lt;2s with expansion enabled (Story 3.3 AC#2)
+- Parallel retrieval required (asyncio or threading) to meet latency budget
+- Early termination if latency budget exceeded (log warning, return original query results)
+- Optional: Redis caching for identical query expansions (5-min TTL)
+
+**Backwards Compatibility:**
+- --expand 0 or query.expansion_count: 0 disables expansion entirely (Story 3.3 AC#5)
+- Default behavior from Story 3.2 (semantic/keyword/hybrid) unchanged when expansion disabled
+- SearchResult dataclass structure must not change (backward compatible with existing code)
+
+**Code Quality:**
+- Follow architecture.md naming conventions: snake_case modules, PascalCase classes
+- Structured logging via structlog with INFO level
+- Type hints required (mypy --disallow-untyped-defs enabled)
+- Test coverage target: 94% (pytest --cov=jarvis)
+
+**Testing Standards:**
+- Unit tests: Mock search_memory() and hybrid_search() for fusion logic testing
+- Integration tests: Real Qdrant + PostgreSQL with test data ingestion
+- Performance tests: Use pytest-benchmark for P95 latency measurement
+- All tests must pass before commit
+  </constraints>
+
+  <interfaces>
+**CLI Interface:**
+```python
+# src/jarvis/cli/query.py
+@app.command()
+def query(
+    question: str,
+    provider: str = "auto",
+    source: Optional[str] = None,
+    k: int = 5,
+    max_tokens: int = 2000,
+    json_output: bool = False,
+    retriever: Optional[str] = None,
+    weight: Optional[float] = None,
+    strict_mode: bool = False,
+    expand: Optional[int] = None,  # NEW: Query expansion count (0-5, default from config)
+) -> None:
+```
+
+**Memory Search Interface:**
+```python
+# src/jarvis/memory/search.py (NEW function)
+def expanded_search(
+    query: str,
+    k: int = 5,
+    expansion_count: int = 2,
+    domains: Optional[Sequence[str]] = None,
+    retriever: str = "semantic",
+    weight: float = 0.7,
+) -> List[SearchResult]:
+    """
+    Perform query expansion + multi-query retrieval + RRF fusion.
+
+    Args:
+        query: Original user query
+        k: Top-k results to return
+        expansion_count: Number of query variants (0-5)
+        domains: Domain filters
+        retriever: "semantic" | "keyword" | "hybrid"
+        weight: Semantic weight for hybrid retrieval
+
+    Returns:
+        List[SearchResult] sorted by fused RRF score
+    """
+```
+
+**Query Expander Interface:**
+```python
+# src/jarvis/memory/query_expander.py (NEW module)
+def expand_query(query: str, count: int = 2) -> List[str]:
+    """
+    Generate alternative phrasings of a query using heuristics.
+
+    Args:
+        query: Original query text
+        count: Number of expansions (1-5)
+
+    Returns:
+        List of expanded query strings (including original)
+    """
+```
+
+**Configuration Interface:**
+```python
+# src/jarvis/config/settings.py (EXTEND QueryConfig)
+@dataclass
+class QueryConfig:
+    default_retriever: str = "semantic"
+    default_weight: float = 0.7
+    default_strict_mode: bool = False
+    enable_expansion: bool = False  # NEW
+    expansion_count: int = 2  # NEW (range: 0-5)
+```
+
+**SearchResult Dataclass (UNCHANGED - reuse):**
+```python
+@dataclass
+class SearchResult:
+    text: str
+    score: float
+    source_file: Optional[str]
+    section: Optional[str]
+    domain: Optional[str]
+    metadata: dict  # May include expansion metadata: {"expansion_used": "variant #2", "rrf_score": 0.85}
+```
+  </interfaces>
+
+  <tests>
+    <standards>
+**Testing Framework:** pytest 8.3.0+
+**Coverage Target:** 94% (pytest --cov=jarvis --cov-report=html)
+**Test Types:**
+  - Unit tests: Pure functions, business logic (fast, no external deps)
+  - Integration tests: Database ops, Qdrant queries (requires Docker services)
+  - Performance tests: P95 latency measurement with pytest-benchmark
+
+**Patterns:**
+  - @pytest.fixture for test setup (e.g., mock Qdrant client, mock search results)
+  - Mock pattern: patch jarvis.cli.query.search_memory for isolated testing
+  - Integration: Use real Qdrant + PostgreSQL, insert test data, verify results
+  - Markers: @pytest.mark.integration for tests requiring Docker
+  - Assertions: assert statements with descriptive messages
+
+**Example from Story 3.2:**
+```python
+# tests/unit/memory/test_search.py
+@pytest.fixture
+def mock_qdrant_results():
+    return [{"id": "1", "score": 0.9, "payload": {...}}]
+
+def test_hybrid_search_normalization(mock_qdrant_results):
+    # Patch search_memory and keyword_search
+    # Verify normalized scores and merge logic
+    ...
+```
+    </standards>
+    <locations>
+- tests/unit/memory/test_query_expander.py (NEW)
+- tests/unit/memory/test_rrf_fusion.py (NEW)
+- tests/unit/memory/test_search.py (EXTEND with expanded_search tests)
+- tests/unit/cli/test_query.py (EXTEND with --expand parameter tests)
+- tests/integration/memory/test_expanded_search_integration.py (NEW)
+    </locations>
+    <ideas>
+**Unit Test Ideas for query_expander.py:**
+- test_expand_query_generates_correct_count: Verify expansion_count parameter respected (1-5 variants)
+- test_expand_query_includes_original: Original query always in expansion list
+- test_expand_query_synonym_replacement: "optimize" → ["optimize", "improve", "tune", "enhance"]
+- test_expand_query_question_reformulation: "How do I X?" → ["Steps to X", "X tutorial", "X guide"]
+- test_expand_query_validates_count_range: Assert ValueError for count &lt; 0 or count &gt; 5
+- test_expand_query_empty_input: Empty string returns [original]
+
+**Unit Test Ideas for RRF fusion:**
+- test_rrf_fusion_score_calculation: Verify RRF formula score(d) = Σ 1/(60 + rank_i(d))
+- test_rrf_fusion_deduplication: Same chunk from multiple expansions → keep highest score
+- test_rrf_fusion_ranking: Results sorted by fused score descending
+- test_rrf_fusion_missing_docs: Doc in one result set but not others → graceful handling
+
+**Integration Test Ideas:**
+- test_expanded_search_with_real_data: Insert test docs in Qdrant + Postgres, run expanded_search, verify merged results
+- test_expansion_logging_telemetry: Verify structlog contains original_query, generated_expansions[], fusion_strategy, total_latency_ms
+- test_expansion_latency_p95: Benchmark expanded_search with pytest-benchmark, assert P95 &lt; 2s
+
+**CLI Test Ideas (extend test_query.py):**
+- test_expand_parameter_default: No --expand flag → uses config default
+- test_expand_parameter_zero_disables: --expand 0 → no expansion, original query only
+- test_expand_parameter_range_validation: --expand 10 → error message + exit code 1
+- test_expand_parameter_config_override: Config has expansion_count: 3, CLI --expand 2 → uses 2
+
+**Performance Test Idea:**
+- test_expanded_search_latency_budget: Generate 3 expansions, run parallel retrieval, measure P95 latency &lt; 2s
+    </ideas>
+  </tests>
+</story-context>

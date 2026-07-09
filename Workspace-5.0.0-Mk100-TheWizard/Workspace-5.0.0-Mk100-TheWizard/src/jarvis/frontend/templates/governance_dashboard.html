@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jarvis Governance Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/css/governance.css">
+    <!-- Keycloak Adapter - v21 has UMD bundle that works in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@21.0.0/dist/keycloak.min.js"></script>
+  </head>
+  <body>
+    <div class="shell" id="main-shell" style="display: none;">
+      <div class="layout">
+        <!-- Sidebar: Quick Stats -->
+        <aside class="sidebar">
+          <div class="sidebar-header">⚡ System Status</div>
+          
+          <!-- Auth Section -->
+          <div class="stat-card" id="auth-card">
+             <div class="stat-label">Identity</div>
+             <div class="stat-value" id="user-display" style="font-size: 14px;">Guest</div>
+             <button id="login-btn" class="pill" style="margin-top:8px; width:100%">Login</button>
+             <button id="logout-btn" class="pill" style="margin-top:8px; width:100%; display:none; background: #ef4444;">Logout</button>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value" id="total-users">--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Active Proposals</div>
+            <div class="stat-value" id="active-proposals">--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Constitution</div>
+            <div class="stat-value">v<span id="constitution-version">1</span></div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">System Health</div>
+            <div class="stat-value health-indicator" id="system-health">●</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Total Weight</div>
+            <div class="stat-value" id="total-weight">--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Pending Escalations</div>
+            <div class="stat-value" id="pending-escalations">--</div>
+          </div>
+          
+          <div class="connection-status" id="ws-status">
+            <span class="status-dot disconnected"></span>
+            <span>Disconnected</span>
+          </div>
+          
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+            <a href="/chat" class="nav-link">💬 Chat</a>
+            <a href="/graph" class="nav-link">🧠 Cognitive Cockpit</a>
+            <a href="/dashboard" class="nav-link">📊 Memory Dashboard</a>
+          </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main">
+          <div class="header">
+            <div class="status-dot connected"></div>
+            <div class="title-block">
+              <div class="title">🏛️ Governance Dashboard</div>
+              <div class="subtitle">Constitutional AI Control Plane | Trust-Weighted Consensus</div>
+            </div>
+            <div class="badge" id="status-pill">Phase: Operational</div>
+          </div>
+          
+          <div class="dashboard-grid">
+            <!-- Active Proposals Panel -->
+            <div class="panel" id="proposals-panel">
+              <div class="panel-header">
+                <h3>📋 Active Proposals</h3>
+                <button class="pill" id="refresh-proposals">↻ Refresh</button>
+              </div>
+              <div class="panel-body">
+                <div id="proposals-list" class="proposals-list">
+                  <div class="loading">Loading proposals...</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Constitution Panel -->
+            <div class="panel" id="constitution-panel">
+              <div class="panel-header">
+                <h3>📜 Constitution</h3>
+                <button class="pill" id="view-history">📚 History</button>
+              </div>
+              <div class="panel-body">
+                <div id="constitution-params" class="constitution-params">
+                  <div class="param-row">
+                    <span class="param-label">Trust Formula</span>
+                    <span class="param-value formula">T = 0.4E + 0.3C + 0.2H + 0.1R</span>
+                  </div>
+                  <div class="param-row">
+                    <span class="param-label">Sybil Threshold (τ)</span>
+                    <span class="param-value" id="sybil-threshold">--</span>
+                  </div>
+                  <div class="param-row">
+                    <span class="param-label">Minority Floor (ε)</span>
+                    <span class="param-value" id="minority-floor">--</span>
+                  </div>
+                  <div class="param-row">
+                    <span class="param-label">Anti-Elite Cap</span>
+                    <span class="param-value" id="anti-elite">--× median</span>
+                  </div>
+                  <div class="param-row">
+                    <span class="param-label">Max Drift</span>
+                    <span class="param-value" id="max-drift">--</span>
+                  </div>
+                </div>
+                <div class="eternity-clauses">
+                  <h4>🔒 Eternity Clauses</h4>
+                  <ul id="eternity-list"></ul>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Trust Distribution Panel -->
+            <div class="panel" id="trust-panel">
+              <div class="panel-header">
+                <h3>📊 Trust Distribution</h3>
+                <button class="pill" id="export-trust">⇩ Export</button>
+              </div>
+              <div class="panel-body">
+                <div class="trust-stats">
+                  <div class="trust-stat">
+                    <span class="label">Median Weight</span>
+                    <span class="value" id="median-weight">--</span>
+                  </div>
+                  <div class="trust-stat">
+                    <span class="label">Anti-Elite Cap</span>
+                    <span class="value" id="elite-cap">--</span>
+                  </div>
+                </div>
+                <canvas id="trust-chart" height="150"></canvas>
+              </div>
+            </div>
+            
+            <!-- Live Events Panel -->
+            <div class="panel" id="events-panel">
+              <div class="panel-header">
+                <h3>🔴 Live Events</h3>
+                <button class="pill" id="clear-events">Clear</button>
+              </div>
+              <div class="panel-body">
+                <div id="events-list" class="events-list">
+                  <div class="event-item info">
+                    <span class="event-icon">ℹ️</span>
+                    <span class="event-text">Waiting for events...</span>
+                    <span class="event-time">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Legitimacy Panel -->
+            <div class="panel" id="legitimacy-panel">
+              <div class="panel-header">
+                <h3>⚖️ Legitimacy Status</h3>
+              </div>
+              <div class="panel-body">
+                <div id="legitimacy-checks" class="legitimacy-checks">
+                  <div class="loading">Loading legitimacy data...</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vote History Panel (AC7) -->
+            <div class="panel" id="vote-history-panel">
+              <div class="panel-header">
+                <h3>🗳️ Vote History</h3>
+                <button class="pill" id="refresh-votes">↻ Refresh</button>
+              </div>
+              <div class="panel-body">
+                <div id="vote-history-list" class="events-list">
+                  <div class="loading">Loading vote history...</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Trust Trend Panel (AC11) -->
+            <div class="panel" id="trust-trend-panel">
+              <div class="panel-header">
+                <h3>📈 Trust Trend</h3>
+              </div>
+              <div class="panel-body">
+                <canvas id="trust-trend-chart" height="180"></canvas>
+              </div>
+            </div>
+            
+            <!-- Expertise Claims Panel (AC12) -->
+            <div class="panel" id="expertise-panel">
+              <div class="panel-header">
+                <h3>🎓 Expertise Claims</h3>
+                <button class="pill" id="claim-expertise">+ Claim</button>
+              </div>
+              <div class="panel-body">
+                <div id="expertise-list" class="events-list">
+                  <div class="loading">Loading expertise claims...</div>
+                </div>
+                <div id="claim-form" style="display:none; margin-top: 12px; padding: 12px; background: rgba(15,23,42,0.5); border-radius: 8px;">
+                  <select id="claim-domain" style="width: 100%; padding: 8px; background: var(--bg); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-main); margin-bottom: 8px;">
+                    <option value="">Select Domain...</option>
+                    <option value="security">Security</option>
+                    <option value="architecture">Architecture</option>
+                    <option value="governance">Governance</option>
+                    <option value="operations">Operations</option>
+                    <option value="compliance">Compliance</option>
+                  </select>
+                  <button class="pill" id="submit-claim" style="width: 100%;">Submit Claim</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Violation Log Panel (AC16) -->
+            <div class="panel" id="violations-panel">
+              <div class="panel-header">
+                <h3>🚫 Violation Log</h3>
+              </div>
+              <div class="panel-body">
+                <div id="violations-list" class="events-list">
+                  <div class="loading">Loading violations...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    
+    <!-- Proposal Detail Modal -->
+    <div id="proposal-modal" class="modal" style="display:none;">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Proposal Details</h3>
+          <button class="close-btn" id="close-modal">×</button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="/static/js/governance.js"></script>
+  </body>
+</html>

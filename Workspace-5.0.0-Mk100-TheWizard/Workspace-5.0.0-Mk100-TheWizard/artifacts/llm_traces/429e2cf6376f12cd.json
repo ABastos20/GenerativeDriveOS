@@ -1,0 +1,25 @@
+{
+  "ts": "2025-12-09T22:12:38.220733",
+  "prompt_hash": "429e2cf6376f12cd",
+  "prompt": "\nYou are a hypothesis generator for a constitutional AI system.\n\nSTRICT RULES:\n- You do NOT choose the final action.\n- You do NOT modify beliefs.\n- You do NOT select goals.\n- You ONLY propose candidate actions.\n\nGoal: foster_innovation\nBeliefs: {\"system_stability\": 0.9138502829464932}\nContext: {\"mean_trust\": 0.19777199050627453, \"variance\": 0.08614971705350682, \"tier\": 2}\n\nReturn ONLY a JSON array of this exact schema:\n\n[\n  {\n    \"action_type\": \"propose\" | \"vote\" | \"abstain\",\n    \"target\": \"string\",\n    \"parameters\": { ... },\n    \"expected_effect\": {\n      \"variance_delta\": float,\n      \"trust_shift\": float\n    },\n    \"confidence\": float (0.0\u20131.0),\n    \"reasoning\": \"string\"\n  }\n]\n",
+  "raw_output": "",
+  "parsed": [
+    {
+      "action_type": "propose",
+      "target": "innovation_grant",
+      "parameters": {
+        "type": "DECISION",
+        "title": "Mock Innovation Grant",
+        "description": "Mock proposal for research.",
+        "domain": "governance.innovation"
+      },
+      "expected_effect": {
+        "variance": 0.05
+      },
+      "confidence": 0.75,
+      "reasoning": "Mock reasoning for innovation."
+    }
+  ],
+  "selected": null,
+  "actual_effect": {}
+}

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <metadata>
+    <story-id>11-5.4</story-id>
+    <title>PostgreSQL Persistence Sink</title>
+    <epic>11 – Mk100 "The Wizard"</epic>
+    <parent>11-5 (Knowledge Sovereignty)</parent>
+    <depends-on>11-5.2 (Sink Architecture)</depends-on>
+    <priority>LOW (Optional)</priority>
+    <type>Tech Debt Resolution</type>
+    <generated>2025-12-10T19:28:00Z</generated>
+  </metadata>
+
+  <user-story>
+    <as-a>auditor</as-a>
+    <i-want>epistemic events persisted to PostgreSQL</i-want>
+    <so-that>I can query historical audit data with SQL and maintain compliance records</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <ac id="1" title="Database Model">
+      <description>JSONB-based model for flexible payload storage</description>
+      <implementation>
+        <item>Create EpistemicEventModel in models.py</item>
+        <item>Indexes on: event_type, knowledge_unit_id, timestamp</item>
+        <item>JSONB for full event payload</item>
+      </implementation>
+    </ac>
+    <ac id="2" title="PostgresSink Implementation">
+      <description>Sink that inserts events into PostgreSQL</description>
+      <implementation>
+        <item>Create PostgresSink in audit_sinks.py</item>
+        <item>Accept session_factory for dependency injection</item>
+        <item>Graceful error handling (rollback, warn, continue)</item>
+      </implementation>
+    </ac>
+    <ac id="3" title="Graceful Degradation">
+      <description>DB unavailable does not crash system</description>
+    </ac>
+    <ac id="4" title="Alembic Migration">
+      <description>Schema management via Alembic migration</description>
+    </ac>
+    <ac id="5" title="Query Support (Optional)">
+      <description>DB-backed forensic timeline queries</description>
+    </ac>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1">Create Database Model (AC: #1)</task>
+    <task id="2">Implement PostgresSink (AC: #2)</task>
+    <task id="3">Graceful Degradation (AC: #3)</task>
+    <task id="4">Alembic Migration (AC: #4)</task>
+    <task id="5">Query Service (AC: #5, Optional)</task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-5.2-audit-sink-architecture.md" title="Dependency" section="Sink Protocol">
+        Defines EpistemicAuditSink Protocol this sink must implement
+      </doc>
+    </docs>
+    <code>
+      <file path="src/jarvis/knowledge/audit_sinks.py" kind="module" reason="Add PostgresSink implementation"/>
+      <file path="src/jarvis/knowledge/models.py" kind="models" reason="Add EpistemicEventModel"/>
+      <file path="alembic/versions/" kind="migration" reason="New migration for epistemic_events table"/>
+    </code>
+    <dependencies>
+      <python>
+        <package>sqlalchemy[asyncio]>=2.0</package>
+        <package>psycopg[binary]>=3.0</package>
+        <package>alembic>=1.12</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="EpistemicEventModel" kind="sqlalchemy-model">
+      <signature>
+class EpistemicEventModel(Base):
+    __tablename__ = "epistemic_events"
+    id = Column(UUID, primary_key=True)
+    event_type = Column(String(50), index=True)
+    knowledge_unit_id = Column(UUID, index=True)
+    timestamp = Column(DateTime(timezone=True), index=True)
+    payload = Column(JSONB)
+      </signature>
+      <path>src/jarvis/knowledge/models.py</path>
+    </interface>
+    <interface name="PostgresSink" kind="class">
+      <signature>
+class PostgresSink:
+    def __init__(self, session_factory: Callable[[], Session]): ...
+    def handle_event(self, event: EpistemicEvent) -> None: ...
+      </signature>
+      <path>src/jarvis/knowledge/audit_sinks.py</path>
+    </interface>
+    <interface name="PostgresAuditQueryService" kind="class">
+      <signature>
+class PostgresAuditQueryService:
+    def get_forensic_timeline(
+        self, 
+        knowledge_unit_id: UUID,
+        start_time: datetime = None,
+        end_time: datetime = None,
+    ) -> list[EpistemicEvent]: ...
+      </signature>
+      <path>src/jarvis/knowledge/audit_query.py (NEW, Optional)</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="resilience">DB failure must not crash ReasoningEngine</constraint>
+    <constraint type="dependency">Requires 11-5.2 Sink Architecture</constraint>
+    <constraint type="schema">Use JSONB for flexible payload storage</constraint>
+    <constraint type="migration">Single Alembic migration, no existing model changes</constraint>
+  </constraints>
+
+  <tests>
+    <standards>pytest framework, use test database or mock session</standards>
+    <locations>tests/unit/test_audit_sinks.py, tests/integration/test_postgres_sink.py</locations>
+    <ideas>
+      <idea ac="1">Test model creates table with correct indexes</idea>
+      <idea ac="2">Test sink inserts event to database</idea>
+      <idea ac="3">Test DB down doesn't crash caller</idea>
+      <idea ac="4">Test migration upgrade/downgrade</idea>
+      <idea ac="5">Test query service filters by time range</idea>
+    </ideas>
+  </tests>
+
+  <sql-examples>
+    <query name="Promotions for unit">
+      SELECT * FROM epistemic_events 
+      WHERE knowledge_unit_id = 'xxx' AND event_type = 'promotion'
+      ORDER BY timestamp;
+    </query>
+    <query name="Recent violations">
+      SELECT * FROM epistemic_events 
+      WHERE event_type = 'usage_violation'
+      AND timestamp > NOW() - INTERVAL '24 hours';
+    </query>
+    <query name="Event counts">
+      SELECT event_type, COUNT(*) FROM epistemic_events GROUP BY event_type;
+    </query>
+  </sql-examples>
+</story-context>

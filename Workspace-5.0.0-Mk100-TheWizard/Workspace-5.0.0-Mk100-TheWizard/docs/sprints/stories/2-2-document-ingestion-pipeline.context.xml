@@ -1,0 +1,167 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Document Ingestion Pipeline</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-21</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/2-2-document-ingestion-pipeline.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>data librarian</asA>
+    <iWant>a pipeline that converts uploads (Markdown, PDF, HTML) into normalized Markdown chunks and embeddings</iWant>
+    <soThat>the memory store is consistent and ready for semantic search</soThat>
+    <tasks>
+      - Task 1: Add CLI entrypoint for ingestion (AC: #1, #4)
+        * Implement jarvis memory add &lt;path&gt; command with input validation and format detection
+        * Integrate pandoc conversion for PDF/HTML to Markdown; no-op for Markdown inputs
+        * Ensure metadata (source path, section/file name, detected domain, ingested_at) is captured
+      - Task 2: Chunking and embedding pipeline (AC: #1, #2, #4)
+        * Implement hybrid chunker (semantic + fixed window fallback) respecting model token limits
+        * Generate embeddings with all-MiniLM-L6-v2 (384-d) and attach to chunk payloads
+        * Normalize text to Markdown and strip unsafe characters before embedding
+      - Task 3: Persistence to stores (AC: #1, #2)
+        * Upsert chunk payload + metadata into PostgreSQL staging tables (if defined)
+        * Write vectors and payload to Qdrant collection knowledge with Cosine distance
+        * Ensure idempotent writes (skip/overwrite via content hash)
+      - Task 4: Observability and error handling (AC: #3)
+        * Add structlog events for start/success/failure with counts and durations
+        * Surface non-zero exit codes for CLI failures; include actionable error messages
+      - Task 5: Tests (AC: all)
+        * Unit tests for chunking logic, format detection, and metadata shaping
+        * Integration test: ingest sample PDF/MD/HTML, verify chunks + embeddings persisted
+        * Integration test: idempotent re-run and failure path (bad file)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given the user runs `jarvis memory add path/to/file.pdf`, When ingestion completes, Then the file is converted via pandoc, chunked, embedded, and stored with metadata in Qdrant/PostgreSQL.
+    2. Given ingestion jobs run, When chunking occurs, Then a hybrid strategy (semantic + fixed window) is used and metadata includes source path, section, domain, and timestamps.
+    3. Given ingestion succeeds or fails, When logs are inspected, Then events show success/failure with file path, chunk counts, and error details.
+    4. Given supported formats (Markdown, PDF, HTML), When a file of each type is ingested, Then normalized Markdown is produced and embedded with 384-d vectors (all-MiniLM-L6-v2).
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 — Story 2.2</title>
+        <section>Document Ingestion Pipeline</section>
+        <snippet>Pipeline converts uploads to normalized Markdown, embeds chunks with all-MiniLM-L6-v2, and logs ingestion events.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Qdrant Configuration</section>
+        <snippet>Qdrant collection uses 384-d vectors (all-MiniLM-L6-v2), Cosine distance, and HNSW m=16/ef_construct=200/full_scan_threshold=10000.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>FR4.2 Document Ingestion</section>
+        <snippet>Ingestion must normalize Markdown, support multiple formats, and store metadata for retrieval and auditing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/test-design-system.md</path>
+        <title>Test Design System</title>
+        <section>Testing standards</section>
+        <snippet>Pytest-based strategy with unit, integration, and slow marks; emphasize fixtures and coverage reporting.</snippet>
+      </doc>
+      <doc>
+        <path>docker/docker-compose.yml</path>
+        <title>Docker Compose</title>
+        <section>qdrant service</section>
+        <snippet>Qdrant runs on port 6333 with qdrant-data volume for persistence and config mount at docker/qdrant/config.yaml.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/database/qdrant.py</path>
+        <kind>module</kind>
+        <symbol>get_qdrant_client, init_collection</symbol>
+        <lines>1-140</lines>
+        <reason>Qdrant client configuration and collection defaults (384-d, Cosine, HNSW) to reuse for ingestion writes.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/database/postgres.py</path>
+        <kind>module</kind>
+        <symbol>get_connection_string, get_session_factory</symbol>
+        <lines>40-150</lines>
+        <reason>PostgreSQL connection/session pattern to persist ingestion metadata or staging tables.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/doctor.py</path>
+        <kind>cli</kind>
+        <symbol>app</symbol>
+        <lines>1-60</lines>
+        <reason>Typer CLI pattern and structlog-friendly output; reuse approach for jarvis memory add command.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/database/test_qdrant.py</path>
+        <kind>tests</kind>
+        <symbol>qdrant mocks</symbol>
+        <lines>1-220</lines>
+        <reason>Mocking approach for Qdrant client and collection operations to model ingestion unit tests.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/database/test_qdrant_integration.py</path>
+        <kind>tests</kind>
+        <symbol>integration flow</symbol>
+        <lines>1-200</lines>
+        <reason>Integration pattern with live Qdrant, useful for ingestion end-to-end verification.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="python" version="^3.13"/>
+        <package name="typer" version="^0.12.0" />
+        <package name="structlog" version="^24.1.0" />
+        <package name="qdrant-client" version="^1.15.1" />
+        <package name="sentence-transformers" version="^5.1.0" />
+        <package name="pydantic" version="^2.9.0" />
+        <package name="sqlalchemy" version="^2.0.0" />
+        <package name="alembic" version="^1.13.0" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use existing Qdrant defaults: 384-d vectors, Cosine distance, HNSW m=16/ef_construct=200/full_scan_threshold=10000 (architecture.md).
+    - CLI patterns should follow Typer/structlog style without logging sensitive content or full document text.
+    - Reuse existing DB/Qdrant client helpers instead of new clients; prefer dependency injection for testability.
+    - Idempotent writes: hash or checksum chunks to avoid duplicate inserts.
+    - Supported formats: Markdown, PDF, HTML; normalize to Markdown via pandoc before chunking/embedding.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>get_qdrant_client</name>
+      <kind>function</kind>
+      <signature>get_qdrant_client(timeout: float = 5.0) -> QdrantClient</signature>
+      <path>src/jarvis/database/qdrant.py</path>
+    </interface>
+    <interface>
+      <name>init_collection</name>
+      <kind>function</kind>
+      <signature>init_collection(collection_name="knowledge", vector_size=384, distance=Distance.COSINE, ...)</signature>
+      <path>src/jarvis/database/qdrant.py</path>
+    </interface>
+    <interface>
+      <name>get_session_factory</name>
+      <kind>function</kind>
+      <signature>get_session_factory() -> sessionmaker</signature>
+      <path>src/jarvis/database/postgres.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Follow docs/test-design-system.md and pytest settings in pyproject.toml; use unit/integration separation and marks for slow tests.</standards>
+    <locations>tests/unit**, tests/integration**</locations>
+    <ideas>
+      - AC1/AC4: CLI ingest command converts PDF/HTML/MD, produces normalized Markdown, and exits 0; verify metadata inserted.
+      - AC2: Chunker produces hybrid segments with source path/section/domain/timestamps fields populated.
+      - AC3: Logging includes counts and errors without leaking content; failure path returns non-zero exit.
+      - AC1/AC2: Qdrant payloads stored with 384-d vectors and expected distance metric; idempotent re-run skips duplicates.
+    </ideas>
+  </tests>
+</story-context>

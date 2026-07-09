@@ -1,0 +1,106 @@
+<story-context id="4-5-4-retrieval-saturation-filter" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.4</storyId>
+    <title>Retrieval Saturation Filter</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-4-retrieval-saturation-filter.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis developer optimizing retrieval quality</asA>
+    <iWant>a diversity filter that prevents redundant chunks from dominating retrieval results</iWant>
+    <soThat>agents receive topically diverse context and voting reflects true semantic differences</soThat>
+    <tasks>
+      <task id="1">Create src/jarvis/memory/diversity.py with apply_diversity_filter()</task>
+      <task id="2">Implement MMR algorithm with configurable lambda parameter</task>
+      <task id="3">Integrate diversity filter into search_memory() after semantic search</task>
+      <task id="4">Add --diversity CLI flag with modes: balanced, aggressive, minimal</task>
+      <task id="5">Log overlap metrics for observability</task>
+      <task id="6">Benchmark performance to ensure < 50ms overhead</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Implement Maximal Marginal Relevance (MMR) algorithm for chunk selection</criterion>
+    <criterion id="2">Support three diversity modes: balanced (λ=0.5), aggressive (λ=0.7), minimal (no filtering)</criterion>
+    <criterion id="3">Diversity filter applied after semantic search, before returning results</criterion>
+    <criterion id="4">Configurable via --diversity CLI flag</criterion>
+    <criterion id="5">Measurable reduction in chunk overlap (logged metric)</criterion>
+    <criterion id="6">No significant latency increase (< 50ms for typical result sets)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.4: Retrieval Saturation Filter</section>
+        <snippet>Enforce retrieval diversity to prevent chunk overload and semantic redundancy using MMR.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service</kind>
+        <symbol>search_memory</symbol>
+        <reason>Integration point for diversity filter</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/query_expander.py</path>
+        <kind>service</kind>
+        <symbol>reciprocal_rank_fusion</symbol>
+        <reason>Related retrieval optimization - diversity is complementary</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>command</kind>
+        <symbol>query_command</symbol>
+        <reason>Add --diversity flag</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="numpy" version=">=1.24" reason="Cosine similarity computation"/>
+        <package name="sklearn.metrics.pairwise" version="optional" reason="cosine_similarity helper"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>MMR Formula: Score = λ * relevance - (1-λ) * max_sim_to_selected</constraint>
+    <constraint>Similarity computed using numpy cosine_similarity on embeddings</constraint>
+    <constraint>If all chunks highly similar, MMR will still select k items</constraint>
+    <constraint>Performance: < 50ms overhead for 50-200 result sets</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>apply_diversity_filter</name>
+      <kind>function</kind>
+      <signature>def apply_diversity_filter(results: List[SearchResult], max_results: int, diversity_mode: str = "balanced") -> List[SearchResult]</signature>
+      <path>src/jarvis/memory/diversity.py</path>
+    </interface>
+    <interface>
+      <name>_compute_pairwise_similarity</name>
+      <kind>function</kind>
+      <signature>def _compute_pairwise_similarity(results: List[SearchResult]) -> np.ndarray</signature>
+      <path>src/jarvis/memory/diversity.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Create mock SearchResult objects with embeddings. Verify diversity improves.</standards>
+    <locations>
+      <location>tests/unit/memory/test_diversity_filter.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test MMR algorithm with known embeddings</idea>
+      <idea ac="2">Test all three diversity modes</idea>
+      <idea ac="5">Test overlap metric logging</idea>
+      <idea ac="6">Benchmark with 50, 100, 200 result sets</idea>
+    </ideas>
+  </tests>
+</story-context>

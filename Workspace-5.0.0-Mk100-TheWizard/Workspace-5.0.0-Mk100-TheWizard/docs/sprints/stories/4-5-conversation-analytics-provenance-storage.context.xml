@@ -1,0 +1,164 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.5</storyId>
+    <title>Conversation Analytics &amp; Provenance Storage</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-28</generatedAt>
+    <generator>BMAD Story Context Workflow (simulated)</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-conversation-analytics-provenance-storage.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>knowledge engineer</asA>
+    <iWant>citation metadata persisted alongside conversations</iWant>
+    <soThat>I can analyze which sources drive answers and build higher-level analytics</soThat>
+    <tasks>
+**Task 1:** Schema design &amp; migration (AC: #1, #4)  
+  - Add a JSONB column (e.g., `messages.citation_provenance`) or a dedicated `message_citations` table to persist `sources[]`-like structures.  
+  - Create an Alembic migration that adds the new column/table without breaking existing data.  
+  - Document the schema in `docs/architecture.md` and `docs/full-documentation.md`.  
+
+**Task 2:** Write path integration (AC: #1)  
+  - Extend the path where assistant messages are persisted (API + MCP server + CLI flows, as applicable) to also write citation metadata for responses that include sources.  
+  - Use the existing JSON envelope `sources[]` structure as the canonical shape when storing provenance.  
+  - Ensure that messages without sources either store `NULL`/empty provenance or skip the write cleanly.  
+
+**Task 3:** Read path &amp; analytics CLI/API (AC: #2, #3)  
+  - Add a minimal analytics CLI/API endpoint (e.g., `jarvis analytics citations --period 30d`) that surfaces basic stats: top files, top domains, citation counts.  
+  - Ensure the read path handles older messages without provenance (falling back to “no data”).  
+  - Keep the analytics output JSON-friendly for future dashboards (Epic 9).  
+
+**Task 4:** Tests (AC: all)  
+  - Unit tests for schema helpers / serialization logic (storing and loading citation provenance).  
+  - Unit tests for the write path (mocking message persistence and verifying provenance is stored).  
+  - Integration test that runs a `jarvis query` against test memory, then queries the DB to verify that stored provenance matches the emitted `sources[]`.  
+  - Tests for analytics CLI/API to ensure correct aggregation and resilience to missing provenance.  
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** `jarvis query` is invoked and returns cited answers, **When** the assistant response is persisted to PostgreSQL, **Then** the associated message record also stores a compact representation of the `sources[]` array (filenames, sections, domains, scores, chunk IDs and hashes).
+
+2. **Given** citation metadata is stored, **When** I run an analytics query (CLI/API), **Then** I can answer questions like “which files are used most often?” or “which domains are most frequently cited?” for a given period.
+
+3. **Given** the JSON envelope schema evolves, **When** provenance is stored, **Then** the database representation remains compatible with the existing `sources[]` shape (additive changes only, no breaking renames).
+
+4. **Given** migrations are applied, **When** the app starts, **Then** existing messages without citation metadata remain valid and queries handle `NULL`/empty provenance gracefully.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>AI Advisor - Epic Breakdown</title>
+        <section>Epic 4 – Story 4.5: Conversation Analytics &amp; Provenance Storage</section>
+        <snippet>Persist citation metadata alongside conversations so analytics can answer questions like which files or domains are most frequently cited.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>JARVIS System - Product Requirements Document</title>
+        <section>FR1: RAG Query System / Query Expansion &amp; Citations</section>
+        <snippet>Answers must be grounded in retrieved context with structured provenance suitable for downstream tooling and analytics.</snippet>
+      </doc>
+      <doc>
+        <path>docs/full-documentation.md</path>
+        <title>JARVIS Full Documentation</title>
+        <section>Query Results &amp; Citations</section>
+        <snippet>Documents the SearchResult shape and the JSON sources[] schema, including score, chunk_id, and hash fields.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>ORM models</kind>
+        <symbol>Message</symbol>
+        <lines>40-120</lines>
+        <reason>Primary place to add citation_provenance (JSONB) on messages, or relate to a new message_citations table.</reason>
+      </artifact>
+      <artifact>
+        <path>alembic/</path>
+        <kind>migrations</kind>
+        <symbol>Alembic migration scripts</symbol>
+        <lines>N/A</lines>
+        <reason>Schema changes for provenance storage must be captured via Alembic migrations.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/mcp_server.py</path>
+        <kind>service module</kind>
+        <symbol>log_message()</symbol>
+        <lines>60-140</lines>
+        <reason>MCP log_message endpoint persists assistant/user messages; may be extended to write citation provenance for assistant responses.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/schemas.py</path>
+        <kind>pydantic models</kind>
+        <symbol>MessageResponse, ConversationWithMessagesResponse</symbol>
+        <lines>100-150</lines>
+        <reason>API response schemas may need to include citation provenance for downstream analytics clients.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>CLI module</kind>
+        <symbol>query()</symbol>
+        <lines>1-260</lines>
+        <reason>Source of the JSON envelope sources[]; this is the canonical shape to persist in the DB.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/database/test_qdrant.py</path>
+        <kind>test file</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Pattern for database-related unit tests that can be mirrored for citation provenance helpers.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/cli/test_query_integration.py</path>
+        <kind>test file</kind>
+        <symbol>TestQueryIntegration</symbol>
+        <lines>1-140</lines>
+        <reason>Integration pattern for verifying that emitted sources[] match real retrieval payloads; will be extended to assert DB provenance.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="SQLAlchemy" version="^2.0.0">ORM and JSON/JSONB support for storing citation provenance.</package>
+        <package name="alembic" version="^1.13.0">Migration framework for evolving the messages schema safely.</package>
+        <package name="pytest" version="^8.3.0">Unit and integration tests for schema helpers, write path, and analytics CLI/API.</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+**Schema &amp; Migration:**
+- Changes must be additive and backward-compatible; existing messages without provenance must remain valid.
+- Prefer JSONB for flexible storage; avoid premature normalization unless necessary.
+
+**Compatibility:**
+- Stored provenance must mirror the existing JSON envelope sources[] structure to avoid divergent formats.
+- Future fields should be appended, not renamed, to avoid breaking analytics code.
+
+**Performance:**
+- Provenance writes must not significantly degrade message persistence latency.
+- Analytics queries should be efficient enough for CLI usage (e.g., simple aggregations over recent periods).
+
+**Testing:**
+- All new schema and analytics code must be covered by unit tests.
+- At least one integration test must verify end-to-end: query → sources[] → DB provenance → analytics query.
+  </constraints>
+
+  <interfaces>
+**DB Interface (Messages):**
+```sql
+-- Example SQL for JSONB column
+ALTER TABLE messages
+  ADD COLUMN citation_provenance JSONB NULL;
+```
+
+**CLI Analytics Interface:**
+```bash
+jarvis analytics citations --period 30d
+# Expected output: top files/domains and citation counts, JSON-capable
+```
+  </interfaces>
+</story-context>
+

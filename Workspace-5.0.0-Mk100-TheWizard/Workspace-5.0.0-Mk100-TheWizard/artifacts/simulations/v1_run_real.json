@@ -1,0 +1,912 @@
+{
+  "meta": {
+    "steps": 50,
+    "seed": 42,
+    "provider": "claude"
+  },
+  "users": [
+    {
+      "user_id": "1303306f-5de2-4f03-a3f0-dddefffceab7",
+      "tier": 1,
+      "trust": 0.6035581445423497
+    },
+    {
+      "user_id": "a1308af2-8c20-458c-beb9-c5d303bb208c",
+      "tier": 1,
+      "trust": 0.3589391234644619
+    },
+    {
+      "user_id": "3ecc03c3-172e-4d78-bbed-eb814202025f",
+      "tier": 2,
+      "trust": 0.2173420734268718
+    },
+    {
+      "user_id": "abb7f15d-b0e5-4787-addd-f27c0a7705bc",
+      "tier": 2,
+      "trust": 0.23494988261167588
+    },
+    {
+      "user_id": "3d73ac40-78d8-497b-b420-ae8296ef71fc",
+      "tier": 2,
+      "trust": 0.2531583518481009
+    },
+    {
+      "user_id": "18740263-9fcd-489f-8c80-d5a18183f517",
+      "tier": 2,
+      "trust": 0.24194845417681174
+    },
+    {
+      "user_id": "54dc8017-7b29-436c-aad2-c09a6861b1e6",
+      "tier": 3,
+      "trust": 0.082065336106438
+    },
+    {
+      "user_id": "5d26e693-deb7-411c-98d1-88bff612e0dd",
+      "tier": 3,
+      "trust": 0.04062590844204324
+    },
+    {
+      "user_id": "cfb4b209-29a1-46ca-a08a-45dfa4b8a051",
+      "tier": 3,
+      "trust": 0.0892932096670563
+    },
+    {
+      "user_id": "4e1b0380-6c87-446c-8079-ac5e8d2292e0",
+      "tier": 3,
+      "trust": 0.0696483585444713
+    }
+  ],
+  "telemetry": [
+    {
+      "step": 1,
+      "mean_trust": 0.19872156390343024,
+      "trust_variance": 0.021519815072377615,
+      "csi": 0.9139207397104896,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.0,
+      "mean_trust_delta": 0.0,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 2,
+      "mean_trust": 0.19724822303193953,
+      "trust_variance": 0.021147608907376735,
+      "csi": 0.915409564370493,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.00946928060632271,
+      "mean_trust_delta": 0.003868850259650046,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 3,
+      "mean_trust": 0.19774461670731713,
+      "trust_variance": 0.02174272613315832,
+      "csi": 0.9130290954673668,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009144261444135604,
+      "mean_trust_delta": 0.00515317479159106,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 4,
+      "mean_trust": 0.2014721414794544,
+      "trust_variance": 0.021703063122482488,
+      "csi": 0.91318774751007,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009462315279587408,
+      "mean_trust_delta": 0.004213387263303845,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 5,
+      "mean_trust": 0.20707572306403704,
+      "trust_variance": 0.024190181572764997,
+      "csi": 0.90323927370894,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.07500624213515594,
+      "mean_trust_delta": 0.028014758296800724,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 6,
+      "mean_trust": 0.20670066612810403,
+      "trust_variance": 0.023992815316116457,
+      "csi": 0.9040287387355341,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008733091754249911,
+      "mean_trust_delta": 0.004066848042238731,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 7,
+      "mean_trust": 0.20791113233796418,
+      "trust_variance": 0.025599861623906643,
+      "csi": 0.8976005535043734,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009790467012731785,
+      "mean_trust_delta": 0.004749289538104866,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 8,
+      "mean_trust": 0.2084729638341003,
+      "trust_variance": 0.025569618967770307,
+      "csi": 0.8977215241289188,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008858194286701093,
+      "mean_trust_delta": 0.004995222887236479,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 9,
+      "mean_trust": 0.20761362297126004,
+      "trust_variance": 0.02575230121571743,
+      "csi": 0.8969907951371303,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009950752129902207,
+      "mean_trust_delta": 0.005062704495483202,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 10,
+      "mean_trust": 0.20912077357338457,
+      "trust_variance": 0.02428565559422914,
+      "csi": 0.9028573776230835,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009922427604801914,
+      "mean_trust_delta": 0.005599326242889128,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 11,
+      "mean_trust": 0.20874582874815656,
+      "trust_variance": 0.023636505826575574,
+      "csi": 0.9054539766936978,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009770379561143683,
+      "mean_trust_delta": 0.004511665804813806,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 12,
+      "mean_trust": 0.20934748906854406,
+      "trust_variance": 0.024376381256244684,
+      "csi": 0.9024944749750212,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008252556786896403,
+      "mean_trust_delta": 0.005028360355269532,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 13,
+      "mean_trust": 0.21053661046851993,
+      "trust_variance": 0.024069445099536423,
+      "csi": 0.9037222196018543,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009988562077441088,
+      "mean_trust_delta": 0.005812302617902084,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 14,
+      "mean_trust": 0.20969499052240245,
+      "trust_variance": 0.02358572935058369,
+      "csi": 0.9056570825976652,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.0089389889059599,
+      "mean_trust_delta": 0.006247202502382498,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 15,
+      "mean_trust": 0.20885420312204644,
+      "trust_variance": 0.023629934100415143,
+      "csi": 0.9054802635983394,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.007448660821705144,
+      "mean_trust_delta": 0.0036066425701545652,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 16,
+      "mean_trust": 0.20774570235979878,
+      "trust_variance": 0.024635227582058453,
+      "csi": 0.9014590896717662,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009902987133217911,
+      "mean_trust_delta": 0.004112148657420339,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 17,
+      "mean_trust": 0.2063106564090599,
+      "trust_variance": 0.024469383455008716,
+      "csi": 0.9021224661799652,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008582853002226942,
+      "mean_trust_delta": 0.005695590546043902,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 18,
+      "mean_trust": 0.2074774747492599,
+      "trust_variance": 0.025344412775305317,
+      "csi": 0.8986223488987788,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.0087102848116134,
+      "mean_trust_delta": 0.0032278766836534183,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 19,
+      "mean_trust": 0.20742967213589053,
+      "trust_variance": 0.025923871091859736,
+      "csi": 0.8963045156325611,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009683304227319334,
+      "mean_trust_delta": 0.005040915191256974,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 20,
+      "mean_trust": 0.20865807688977486,
+      "trust_variance": 0.02547964987262959,
+      "csi": 0.8980814005094816,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009985649368254537,
+      "mean_trust_delta": 0.0054525955260371715,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 21,
+      "mean_trust": 0.2095255092202534,
+      "trust_variance": 0.02648795851528257,
+      "csi": 0.8940481659388697,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009706176875594521,
+      "mean_trust_delta": 0.006050038943469093,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 22,
+      "mean_trust": 0.21073693140679936,
+      "trust_variance": 0.026641508844324556,
+      "csi": 0.8934339646227017,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009908453789854277,
+      "mean_trust_delta": 0.0048325279374656265,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 23,
+      "mean_trust": 0.21264330178897328,
+      "trust_variance": 0.026947621631917447,
+      "csi": 0.8922095134723302,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009374187299383219,
+      "mean_trust_delta": 0.005047978378786027,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 24,
+      "mean_trust": 0.21112665763098745,
+      "trust_variance": 0.025868420429931392,
+      "csi": 0.8965263182802744,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008397770695188322,
+      "mean_trust_delta": 0.005014386710182223,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 25,
+      "mean_trust": 0.21110065019153595,
+      "trust_variance": 0.026109853215226287,
+      "csi": 0.8955605871390948,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.00869412515472856,
+      "mean_trust_delta": 0.0037421805846874516,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 26,
+      "mean_trust": 0.21125724227277262,
+      "trust_variance": 0.02645509311046923,
+      "csi": 0.8941796275581231,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009969088817088884,
+      "mean_trust_delta": 0.006562106955233965,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 27,
+      "mean_trust": 0.21342804921520186,
+      "trust_variance": 0.02713812997706707,
+      "csi": 0.8914474800917317,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009843537856956845,
+      "mean_trust_delta": 0.006030418829436131,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 28,
+      "mean_trust": 0.21285475815520755,
+      "trust_variance": 0.027554857332977394,
+      "csi": 0.8897805706680905,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008778600078542087,
+      "mean_trust_delta": 0.004883196347689028,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 29,
+      "mean_trust": 0.21255867391671562,
+      "trust_variance": 0.028061437518412176,
+      "csi": 0.8877542499263513,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008154030645745325,
+      "mean_trust_delta": 0.0047092456400842165,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 30,
+      "mean_trust": 0.21128337742327638,
+      "trust_variance": 0.027973199959194284,
+      "csi": 0.8881072001632229,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009929086218244287,
+      "mean_trust_delta": 0.005612297785821099,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 31,
+      "mean_trust": 0.2132958323783814,
+      "trust_variance": 0.027829258193878808,
+      "csi": 0.8886829672244848,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008078571431197723,
+      "mean_trust_delta": 0.0056772643359860025,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 32,
+      "mean_trust": 0.21379307710049003,
+      "trust_variance": 0.028206730454723564,
+      "csi": 0.8871730781811058,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008597620313873497,
+      "mean_trust_delta": 0.00595762770066463,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 33,
+      "mean_trust": 0.21857600818202738,
+      "trust_variance": 0.028324031152644345,
+      "csi": 0.8867038753894226,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.00952412065861924,
+      "mean_trust_delta": 0.00668378563394457,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 34,
+      "mean_trust": 0.22014773998915863,
+      "trust_variance": 0.028679876120422363,
+      "csi": 0.8852804955183106,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.007838087471940869,
+      "mean_trust_delta": 0.005010150055071367,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 35,
+      "mean_trust": 0.21958678863427003,
+      "trust_variance": 0.028844461243939617,
+      "csi": 0.8846221550242416,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009526711305970964,
+      "mean_trust_delta": 0.005633228490245135,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 36,
+      "mean_trust": 0.22057054808049342,
+      "trust_variance": 0.029942530676526698,
+      "csi": 0.8802298772938932,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009622993743965247,
+      "mean_trust_delta": 0.006574390500918537,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 37,
+      "mean_trust": 0.22091748734909672,
+      "trust_variance": 0.030154118689733896,
+      "csi": 0.8793835252410644,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008511503309981655,
+      "mean_trust_delta": 0.0038815625972294433,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 38,
+      "mean_trust": 0.22181170507285247,
+      "trust_variance": 0.03009459268976258,
+      "csi": 0.8796216292409497,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008600523777473834,
+      "mean_trust_delta": 0.0038366364479550997,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 39,
+      "mean_trust": 0.22101415595379598,
+      "trust_variance": 0.030099459331577663,
+      "csi": 0.8796021626736894,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008807273414603661,
+      "mean_trust_delta": 0.004147292635123987,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 40,
+      "mean_trust": 0.22058234385597003,
+      "trust_variance": 0.03063551437226734,
+      "csi": 0.8774579425109307,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009991881206054293,
+      "mean_trust_delta": 0.0036356044166995644,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 41,
+      "mean_trust": 0.21973027571504683,
+      "trust_variance": 0.03061119116056478,
+      "csi": 0.8775552353577409,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.00811119119817516,
+      "mean_trust_delta": 0.004234461947467447,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 42,
+      "mean_trust": 0.2189067867692735,
+      "trust_variance": 0.03128455661357953,
+      "csi": 0.8748617735456818,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009511492245463493,
+      "mean_trust_delta": 0.005191868814810457,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 43,
+      "mean_trust": 0.21861872873326718,
+      "trust_variance": 0.031156931329908155,
+      "csi": 0.8753722746803674,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009889103637239372,
+      "mean_trust_delta": 0.004300811266136323,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 44,
+      "mean_trust": 0.21798656696028526,
+      "trust_variance": 0.030073344122847456,
+      "csi": 0.8797066235086102,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.00915932084559079,
+      "mean_trust_delta": 0.005134868740170743,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 45,
+      "mean_trust": 0.22260163417542564,
+      "trust_variance": 0.030416195075122707,
+      "csi": 0.8783352196995091,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009757849061328927,
+      "mean_trust_delta": 0.004615067215140369,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 46,
+      "mean_trust": 0.22349781434740806,
+      "trust_variance": 0.031097723914402062,
+      "csi": 0.8756091043423917,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.007944162064665306,
+      "mean_trust_delta": 0.003873367493121323,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 47,
+      "mean_trust": 0.22015585784480626,
+      "trust_variance": 0.030341991036331704,
+      "csi": 0.8786320358546732,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008715422985722449,
+      "mean_trust_delta": 0.005104041208650004,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 48,
+      "mean_trust": 0.22175531812285804,
+      "trust_variance": 0.029581279141899848,
+      "csi": 0.8816748834324006,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.008096769566803497,
+      "mean_trust_delta": 0.0037980542338214114,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 49,
+      "mean_trust": 0.22298394048198816,
+      "trust_variance": 0.02890625843294611,
+      "csi": 0.8843749662682155,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009882078328320165,
+      "mean_trust_delta": 0.0046003935678767555,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    },
+    {
+      "step": 50,
+      "mean_trust": 0.21915288428302807,
+      "trust_variance": 0.0287907162309392,
+      "csi": 0.8848371350762432,
+      "goal_entropy": 0.0,
+      "active_goals": {
+        "idle": 10
+      },
+      "active_proposals": 0,
+      "proposal_passed": false,
+      "max_trust_delta": 0.009419503601065693,
+      "mean_trust_delta": 0.004547623739073484,
+      "high_trust_count": 0,
+      "runaway_detected": false,
+      "saturation_detected": false
+    }
+  ],
+  "failure_alerts": []
+}

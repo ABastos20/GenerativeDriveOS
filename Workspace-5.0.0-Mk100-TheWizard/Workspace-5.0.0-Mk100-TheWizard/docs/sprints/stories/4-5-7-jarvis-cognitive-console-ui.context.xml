@@ -1,0 +1,395 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.7</storyId>
+    <title>Jarvis Cognitive Console (UI Enhancements)</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/4-5-7-jarvis-cognitive-console-ui.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis power-user</asA>
+    <iWant>a dynamic UI with domain/tag filters, pagination, and cognitive state visibility</iWant>
+    <soThat>I can steer Jarvis's memory and reasoning without touching backend config</soThat>
+    <tasks>
+      - Task 1: Enhance Backend APIs for Metadata (AC4) - 3 subtasks
+      - Task 2: Implement Filter Profiles (AC2) - 3 subtasks
+      - Task 3: Active Filters Mini-Bar (AC3) - 3 subtasks
+      - Task 4: Hover Tooltips for Descriptions (AC4) - 3 subtasks
+      - Task 5: Planner Action Display (AC5) - 3 subtasks
+      - Task 6: Trace Viewer Modal (AC6) - 4 subtasks
+      - Task 7: Session Auto-Update (AC7) - 3 subtasks
+      - Task 8: Ensure No Backend Mutations (AC8) - 3 subtasks
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" priority="high">
+      <title>Filter Panels Enhanced</title>
+      <description>
+        Domain and Tags panels support multi-select with checkboxes, search functionality filters checkbox lists in real-time,
+        visible close button (×) on each panel, only one panel open at a time (auto-close others).
+      </description>
+      <status>partially_implemented</status>
+      <notes>Already completed: multi-select panels, search, close buttons. Story adds profiles and metadata.</notes>
+    </criterion>
+
+    <criterion id="AC2" priority="high">
+      <title>Filter Profiles</title>
+      <description>
+        User can save current filter combinations with custom names ("Hydrogen Ops", "GD Core", "Jarvis Architecture"),
+        profiles stored in localStorage, quick-apply dropdown for saved profiles, edit/delete profile functionality.
+      </description>
+      <status>not_started</status>
+    </criterion>
+
+    <criterion id="AC3" priority="high">
+      <title>Active Filters Display</title>
+      <description>
+        Mini-bar showing currently active domains and tags, clear individual filter chips (× on each),
+        "Clear All Filters" button removes all active filters, "Reset to Default" button restores saved default profile.
+      </description>
+      <status>not_started</status>
+    </criterion>
+
+    <criterion id="AC4" priority="high">
+      <title>Domain & Tag Metadata</title>
+      <description>
+        Backend returns domain descriptions via `/api/memory/domains` (enhanced), backend returns tag definitions via `/api/memory/tags` (enhanced),
+        hover tooltips show descriptions for domains and tags, tooltip includes chunk count per domain/tag.
+      </description>
+      <status>partially_implemented</status>
+      <notes>Endpoints exist. Need to add description fields and chunk counts.</notes>
+    </criterion>
+
+    <criterion id="AC5" priority="medium">
+      <title>Planner Action Display</title>
+      <description>
+        Display planner actions from `CognitiveTrace.trace_data` metadata, show actions like `INCREASE_DIVERSITY`, `TRIGGER_RESEARCH_EXPANSION` in UI,
+        read-only display (no manual triggering), visual indicators for planner decisions.
+      </description>
+      <status>not_started</status>
+      <notes>Depends on CognitiveTraceLog table from Story 4.5.6</notes>
+    </criterion>
+
+    <criterion id="AC6" priority="medium">
+      <title>Trace Viewer Modal</title>
+      <description>
+        "View Full Trace" button on responses with traces, modal shows pretty-formatted trace tree (not raw JSON),
+        expandable sections for: Query → Memory → Planner → Response, never shows raw prompts or LLM outputs (summaries only per 4.5.6).
+      </description>
+      <status>not_started</status>
+      <notes>Requires new endpoint `/api/cognitive-traces/{trace_id}` and trace sanitization logic.</notes>
+    </criterion>
+
+    <criterion id="AC7" priority="low">
+      <title>Session Auto-Update</title>
+      <description>
+        UI polls for backend session changes every 30s, detects new domains/tags and refreshes lists,
+        notifies user of new available filters, no page refresh required.
+      </description>
+      <status>not_started</status>
+    </criterion>
+
+    <criterion id="AC8" priority="critical">
+      <title>No Backend Config Mutation</title>
+      <description>
+        All filter changes are session-level only, no permanent backend config modifications,
+        settings stored in localStorage (client-side), filters affect retrieval stage only, never ingestion.
+      </description>
+      <status>verified</status>
+      <notes>Already enforced. Story reinforces this constraint.</notes>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>JARVIS System Architecture</title>
+        <section>Memory Architecture</section>
+        <snippet>
+          Memory system uses Qdrant (vectors) + PostgreSQL (full docs) for hybrid retrieval.
+          Domain filtering and tag filtering are query-time operations via search_memory(domains=..., tags=...).
+          No changes to core ingestion logic.
+        </snippet>
+      </artifact>
+
+      <artifact>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5 ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.6 - Cognitive Trace</section>
+        <snippet>
+          CognitiveTraceLog model stores full trace data in JSONB field. Trace ownership: ARCHES controller creates, finalizes, persists.
+          UI must only read traces, never show raw prompts/outputs. Planner actions stored in trace_data.planner_actions array.
+        </snippet>
+      </artifact>
+
+      <artifact>
+        <path>docs/sprints/4-5-7-jarvis-cognitive-console-ui.md</path>
+        <title>Story 4.5.7 - Jarvis Cognitive Console</title>
+        <section>Dev Notes - Already Completed</section>
+        <snippet>
+          Domain multi-select panel with search and checkboxes already implemented. Tags multi-select panel already implemented.
+          Close buttons (×) on selector panels already implemented. `/api/memory/tags` endpoint returns 31 tags from Qdrant.
+          Tag filtering with AND logic (must have all selected tags) already working.
+        </snippet>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/jarvis/api/app.py</path>
+        <kind>ui_html</kind>
+        <symbol>embedded_chat_ui</symbol>
+        <lines>1100-3240</lines>
+        <reason>
+          Main UI implementation. Contains domain/tags selector panels (lines 1158-1181), JavaScript for multi-select (lines 1469-1723),
+          sendMessage function that passes tags to backend (line 2891). Need to add: filter profiles UI, active filters mini-bar, tooltips,
+          planner action display, trace viewer modal, session polling.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/jarvis/api/memory.py</path>
+        <kind>api_endpoint</kind>
+        <symbol>list_domains, list_tags</symbol>
+        <lines>148-232</lines>
+        <reason>
+          Memory API endpoints for domains and tags. list_domains() returns domain list (lines 148-182).
+          list_tags() scrolls Qdrant and returns tag list (lines 185-232). Need to enhance with descriptions and chunk counts.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/jarvis/api/schemas.py</path>
+        <kind>data_model</kind>
+        <symbol>DomainListResponse, TagsListResponse, MemorySearchRequest</symbol>
+        <lines>73-97, 304-313</lines>
+        <reason>
+          Request/response models for memory APIs. MemorySearchRequest includes tags field (line 85-88).
+          DomainListResponse and TagsListResponse need to be extended with metadata (descriptions, counts).
+          Need to add: DomainMetadata, TagMetadata models.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/jarvis/database/models.py</path>
+        <kind>orm_model</kind>
+        <symbol>CognitiveTraceLog</symbol>
+        <lines>378-450</lines>
+        <reason>
+          CognitiveTraceLog ORM model with trace_data JSONB field. Contains planner actions, query mode, severity, and full trace.
+          UI needs to read this for planner action display and trace viewer modal. Never expose raw prompts/outputs.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/jarvis/memory/heuristics/gd_domains.py</path>
+        <kind>config</kind>
+        <symbol>GD_KEYWORD_TAGS</symbol>
+        <lines>16-110</lines>
+        <reason>
+          GenerativeDrive keyword-to-tag mapping dictionary. Contains 110+ tag definitions for GD project (hydrogen, solar, wind, hydro, etc.).
+          Use this as base for tag descriptions dictionary in new tag_descriptions.py file.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>api_endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <lines>not_specified</lines>
+        <reason>
+          Chat endpoint handles user queries and returns responses with metadata. May need to include trace_id in response metadata
+          for trace viewer button linking. Verify that cognitive trace IDs are returned in chat responses.
+        </reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <python>
+        <package name="fastapi" version="^0.104.0" />
+        <package name="pydantic" version="^2.5.0" />
+        <package name="sqlalchemy" version="^2.0.0" />
+        <package name="qdrant-client" version="^1.15.1" />
+        <package name="typer" version="^0.9.0" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture" priority="critical">
+      UI state must be client-side only (localStorage). No backend persistence for filter settings.
+      All filter operations affect retrieval queries only, never ingestion or document mutation.
+    </constraint>
+
+    <constraint type="security" priority="critical">
+      Trace viewer must NEVER expose raw prompts, raw LLM completions, or sensitive user data.
+      Only show summaries, metadata, and sanitized content per ARCHES Story 4.5.6 compliance.
+    </constraint>
+
+    <constraint type="data_integrity" priority="high">
+      Polling for domains/tags must not interfere with active user input. Updates must be non-disruptive.
+      Preserve current filter selections when refreshing domain/tag lists.
+    </constraint>
+
+    <constraint type="performance" priority="medium">
+      Qdrant scroll for tag collection should use batch size 1000 and terminate early if possible.
+      Chunk counts per domain should be cached or pre-computed to avoid slow queries on every domains API call.
+    </constraint>
+
+    <constraint type="ux" priority="high">
+      Filter profiles must have unique names (validated client-side). Profile names cannot be empty.
+      Active filters mini-bar should collapse/hide when no filters are active to save screen space.
+    </constraint>
+
+    <constraint type="testing" priority="high">
+      All localStorage operations must be tested with mock storage in unit tests.
+      API responses must be validated against Pydantic schemas to catch serialization issues early.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>/api/memory/domains (enhanced)</name>
+      <kind>REST_GET</kind>
+      <signature>
+        GET /api/memory/domains
+        Response: DomainListResponse {
+          domains: List[DomainMetadata] = [
+            {name: str, description: str, chunk_count: int}
+          ]
+        }
+      </signature>
+      <path>src/jarvis/api/memory.py:list_domains</path>
+      <notes>
+        Enhance existing endpoint to return metadata objects instead of plain strings.
+        Query Qdrant for chunk counts per domain using scroll + filter by primary_domain.
+      </notes>
+    </interface>
+
+    <interface>
+      <name>/api/memory/tags (enhanced)</name>
+      <kind>REST_GET</kind>
+      <signature>
+        GET /api/memory/tags
+        Response: TagsListResponse {
+          tags: List[TagMetadata] = [
+            {tag: str, description: str, count: int}
+          ]
+        }
+      </signature>
+      <path>src/jarvis/api/memory.py:list_tags</path>
+      <notes>
+        Enhance existing endpoint to return metadata objects. Load descriptions from tag_descriptions.py mapping.
+        Count occurrences during Qdrant scroll to avoid second pass.
+      </notes>
+    </interface>
+
+    <interface>
+      <name>/api/cognitive-traces/{trace_id} (NEW)</name>
+      <kind>REST_GET</kind>
+      <signature>
+        GET /api/cognitive-traces/{trace_id: UUID}
+        Response: CognitiveTraceResponse {
+          trace_id: UUID,
+          query: str,
+          mode: str,
+          severity: str,
+          trace_data: dict (sanitized - no raw prompts/outputs),
+          total_latency_ms: int,
+          created_at: datetime
+        }
+      </signature>
+      <path>src/jarvis/api/cognitive_traces.py:get_trace (NEW FILE)</path>
+      <notes>
+        New endpoint to retrieve cognitive traces by ID. Must sanitize trace_data before returning:
+        - Remove raw_prompt, raw_completion fields
+        - Keep planner_actions, memory_summary, query_metadata
+        - Include latency breakdown and stage timings
+      </notes>
+    </interface>
+
+    <interface>
+      <name>Filter Profile localStorage API (client-side)</name>
+      <kind>JavaScript_LocalStorage</kind>
+      <signature>
+        // Save profile
+        saveProfile(name: string, domains: string[], tags: string[]): void
+        // Load profile
+        loadProfile(name: string): {domains: string[], tags: string[]} | null
+        // Delete profile
+        deleteProfile(name: string): void
+        // List all profiles
+        listProfiles(): Array&lt;{name: string, domains: string[], tags: string[], created: timestamp}&gt;
+      </signature>
+      <path>src/jarvis/api/app.py (JavaScript section)</path>
+      <notes>
+        Client-side functions to manage filter profiles in localStorage under key 'jarvis_filter_profiles'.
+        Profile format: {name, domains, tags, created}. Validate unique names.
+      </notes>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest for all Python tests. Integration tests require Docker containers (Qdrant, PostgreSQL) running.
+      UI tests use JavaScript unit testing with mock localStorage. E2E tests use browser automation (Playwright).
+      All API responses must validate against Pydantic schemas. Test both success and error paths.
+    </standards>
+
+    <locations>
+      - tests/unit/ for Python unit tests
+      - tests/integration/ for API integration tests
+      - tests/e2e/ for end-to-end UI tests
+      - Frontend tests inline in src/jarvis/api/app.py (JavaScript comments)
+    </locations>
+
+    <ideas>
+      <test ac="AC2">
+        Test filter profile save/load/delete cycle with localStorage mock.
+        Test profile name uniqueness validation.
+        Test default profile restoration on page load.
+      </test>
+
+      <test ac="AC3">
+        Test active filters mini-bar shows correct chips for selected domains/tags.
+        Test individual chip removal updates filter arrays.
+        Test "Clear All" removes all filters and updates UI state.
+      </test>
+
+      <test ac="AC4">
+        Test /api/memory/domains returns DomainMetadata with descriptions and chunk_count.
+        Test /api/memory/tags returns TagMetadata with descriptions and count.
+        Test tooltip rendering with domain/tag descriptions in UI.
+      </test>
+
+      <test ac="AC5">
+        Test planner action extraction from CognitiveTraceLog.trace_data.
+        Test planner action display in UI with correct icons/labels.
+        Test read-only constraint (no manual triggering of planner actions).
+      </test>
+
+      <test ac="AC6">
+        Test /api/cognitive-traces/{trace_id} endpoint returns sanitized trace data.
+        Test trace viewer modal opens/closes correctly.
+        Test raw prompts and raw completions are NEVER exposed in trace viewer.
+      </test>
+
+      <test ac="AC7">
+        Test polling mechanism detects new domains/tags after ingestion.
+        Test UI refreshes domain/tag lists without losing user selections.
+        Test toast notification appears when new filters are detected.
+      </test>
+
+      <test ac="AC8">
+        Test that no API calls modify backend config (no PUT/PATCH to /api/config).
+        Test that filters affect only query-time retrieval (verify by checking Qdrant data unchanged).
+        Test that localStorage is the only persistence layer for UI settings.
+      </test>
+    </ideas>
+  </tests>
+</story-context>

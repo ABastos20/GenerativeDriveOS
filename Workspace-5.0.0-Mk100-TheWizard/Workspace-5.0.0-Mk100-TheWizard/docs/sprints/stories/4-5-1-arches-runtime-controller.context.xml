@@ -1,0 +1,137 @@
+<story-context id="4-5-1-arches-runtime-controller" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.1</storyId>
+    <title>ARCHES Runtime Controller</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-1-arches-runtime-controller.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis developer</asA>
+    <iWant>a centralized ARCHESController that manages query session lifecycle, plan state, and memory usage</iWant>
+    <soThat>I can prevent redundant agent calls and coordinate ARCHES components through shared state</soThat>
+    <tasks>
+      <task id="1">Create ARCHES module structure - src/jarvis/arches/__init__.py and controller.py</task>
+      <task id="2">Implement ARCHESSession dataclass with session_id, query, plan_state, memory_state, agent_results, flags</task>
+      <task id="3">Implement ARCHESController class with start_session(), should_trigger_research(), record_memory_usage()</task>
+      <task id="4">Integrate controller into chat.py and query.py as session manager</task>
+      <task id="5">Create unit tests in tests/unit/arches/test_controller.py</task>
+      <task id="6">Create integration tests in tests/integration/arches/test_session_lifecycle.py</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">ARCHESController class instantiated per-query session with unique session_id</criterion>
+    <criterion id="2">Tracks plan_state with stages: assess, research, critical, hybrid, execute, store</criterion>
+    <criterion id="3">Records memory_state: chunks_used, domains, freshness_scores, retrieved_at</criterion>
+    <criterion id="4">Maintains state flags: is_research_triggered, fallback_needed, rerun_detected</criterion>
+    <criterion id="5">should_trigger_research() checks session state before gap analysis</criterion>
+    <criterion id="6">Controller integrated into chat.py and query.py as session manager</criterion>
+    <criterion id="7">Real-time freshness scores computed for retrieved memory chunks</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.1: ARCHES Runtime Controller</section>
+        <snippet>Introduces central arches/controller.py holding full plan state, memory state, and session tracking. Transforms ARCHES from pattern to controller.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Jarvis Architecture</title>
+        <section>ARCHES Pattern</section>
+        <snippet>ARCHES: Assess, Research, Critical, Hybrid, Execute, Store - distributed cognitive pattern for query processing.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/gap_analyzer.py</path>
+        <kind>service</kind>
+        <symbol>GapAnalyzer</symbol>
+        <reason>Current gap detection logic - controller will wrap and coordinate these calls</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/research_planner.py</path>
+        <kind>service</kind>
+        <symbol>plan_research</symbol>
+        <reason>Research planning logic - controller decides when to trigger research</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <reason>Primary integration point - wrap query handling in controller session</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/cli/query.py</path>
+        <kind>command</kind>
+        <symbol>query_command</symbol>
+        <reason>CLI integration point - wrap CLI queries in controller session</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/search.py</path>
+        <kind>service</kind>
+        <symbol>search_memory</symbol>
+        <reason>Memory retrieval - controller tracks chunks_used and freshness</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/agents/orchestrator.py</path>
+        <kind>service</kind>
+        <symbol>ParallelAgentOrchestrator</symbol>
+        <reason>Agent orchestration - controller coordinates with this</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="structlog" version=">=23.0.0" reason="Structured logging for controller events"/>
+        <package name="uuid" version="stdlib" reason="Session ID generation"/>
+        <package name="dataclasses" version="stdlib" reason="ARCHESSession dataclass"/>
+        <package name="datetime" version="stdlib" reason="Timestamp tracking"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Controller MUST NOT introduce latency > 5ms per session operation</constraint>
+    <constraint>Follow existing pytest patterns in tests/unit/ for unit tests</constraint>
+    <constraint>New module src/jarvis/arches/ parallel to agents/ and memory/</constraint>
+    <constraint>Use structlog for all logging with structured events</constraint>
+    <constraint>Session state must be thread-safe for concurrent queries</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ARCHESController</name>
+      <kind>class</kind>
+      <signature>class ARCHESController: start_session(query, conversation_id) -> ARCHESSession</signature>
+      <path>src/jarvis/arches/controller.py</path>
+    </interface>
+    <interface>
+      <name>ARCHESSession</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass ARCHESSession: session_id, query, plan_state, memory_state, agent_results, flags, created_at, updated_at</signature>
+      <path>src/jarvis/arches/controller.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with pytest-asyncio for async tests. Follow existing patterns in tests/unit/. Mock external dependencies (Qdrant, LLM). Aim for >90% coverage on new code.</standards>
+    <locations>
+      <location>tests/unit/arches/test_controller.py</location>
+      <location>tests/integration/arches/test_session_lifecycle.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test session creation with unique IDs</idea>
+      <idea ac="2">Test plan_state stage transitions</idea>
+      <idea ac="3">Test memory_state recording with mock chunks</idea>
+      <idea ac="4">Test state flag toggling</idea>
+      <idea ac="5">Test should_trigger_research with various states</idea>
+      <idea ac="7">Test freshness computation with mock timestamps</idea>
+    </ideas>
+  </tests>
+</story-context>

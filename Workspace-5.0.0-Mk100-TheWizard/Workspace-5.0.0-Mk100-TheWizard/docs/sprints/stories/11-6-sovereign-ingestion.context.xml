@@ -1,0 +1,190 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-6</storyId>
+    <title>Sovereign Ingestion & Trust Scoring Pipeline</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-6-sovereign-ingestion.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect</asA>
+    <iWant>a sovereign ingestion pipeline with automated trust scoring</iWant>
+    <soThat>all data entering Jarvis is classified, weighted, and provenance-controlled before it can influence cognition, governance, or memory</soThat>
+    <tasks>
+      <task id="1" ac="1">Build Unified Ingestion Pipeline</task>
+      <task id="2" ac="2">Implement Trust Scoring Engine</task>
+      <task id="3" ac="3">Build Evidence Promotion Workflow</task>
+      <task id="4" ac="4">Implement Ingestion Firewall</task>
+      <task id="5" ac="5">Integrate Knowledge Class Binding</task>
+      <task id="6" ac="6">Build Batch Orchestrator</task>
+      <task id="7" ac="7">Bind to BMAD</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" title="Unified Ingestion Pipeline">
+      Raw data passes through controlled pipeline with provenance tracking. Pipeline supports batch ingestion for PDFs, CSV, JSON, Logs, Research papers. Every ingestion produces: ingestion_id, raw_hash, source_uri, timestamp, initial_tier=0. Ingestion as controlled projection: Π_ingest: RawData → (K, P, c₀). No ingestion may bypass Tier Assignment or Provenance Ledger (11-5).
+    </criterion>
+    <criterion id="2" title="Automated Trust Scoring Engine">
+      Data item receives trust score (0.0-1.0) based on: source reputation, cryptographic integrity, structural consistency, cross-source corroboration, historical accuracy, reviewer confidence. Scoring function: c₀(i) = BaseTrust(Tier(i)) · SourceReputation(o). Base trust values: K₀=1.00, K₁=0.95, K₂=0.80, K₃=0.50, K₄=0.20. Recommendation: {quarantine, provisional, authoritative}.
+    </criterion>
+    <criterion id="3" title="Evidence Promotion Workflow">
+      Tier 0 → Tier 1 automatic if score ≥ 0.5. Tier 1 → Tier 2 requires human reviewer OR governance auto-policy. Every promotion creates new Epistemic Ledger version. Trust weight bumped on promotion. Full forensic trail logged. Promotion tied to 11-5 dual-persona arbitration.
+    </criterion>
+    <criterion id="4" title="Ingestion Firewall (Anti-Poisoning)">
+      Blocks: malformed datasets, statistical outliers as sole sources, single-origin authority inflation. Detects: mirroring attacks, dataset hallucination, citation loops. Pre-tier filters: structural validity, source authenticity, intent surface scan. Quarantine on filter failure. Integrated with C-IDS (11-4).
+    </criterion>
+    <criterion id="5" title="Knowledge Class Binding">
+      Every ingested item must declare: knowledge_class, declared_source_type. Mismatch detection: "news" declaring "primary_evidence" → forced Tier 0. Class binding enforced before ledger entry. Integration with 11-5 knowledge tier model.
+    </criterion>
+    <criterion id="6" title="Bulk Ingestion Orchestration">
+      Batch processing with parallel ingestion, backpressure management, per-batch trust distribution. Batch risk scoring: Risk(B) = (1/|B|) · Σ(i ∈ B)(1 - c₀(i)). If Risk(B) > θ ⇒ Batch throttled, sandboxed, or delayed. Abort threshold if %low_trust > X.
+    </criterion>
+    <criterion id="7" title="BMAD & Reasoning Binding">
+      BMAD can: read Tier 1 & 2, weigh decisions by trust score. BMAD cannot: promote Tier 1 → 2, override trust scoring, bypass ingestion firewall, inject data directly into ledger.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/stories/11-5-knowledge-sovereignty.md</path>
+        <title>Story 11.5 — Knowledge Sovereignty & Provenance Arbitration</title>
+        <section>Lock 7 - Epistemic Sovereignty, Provenance Ledger, Knowledge Tier Lattice</section>
+        <snippet>Provenance vector P(i) = ⟨s, o, m, c₀, t₀, K⟩. Tier assignment: K₀ (telemetry), K₁ (analytics), K₂ (papers), K₃ (news), K₄ (scrape). Dual-persona arbitration for tier promotion.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprints/stories/11-4-capability-code-index.md</path>
+        <title>Story 11.4 — Capability Code Index & Cognitive IDS</title>
+        <section>C-IDS Pattern Detection</section>
+        <snippet>Cognitive IDS detects attack patterns, abuse correlation, Ultron-class escalation attempts. Integration point for ingestion firewall.</snippet>
+      </doc>
+      <doc>
+        <path>docs/archive/architectNotesEpic11.txt</path>
+        <title>Epic 11 Architect Notes</title>
+        <section>Story 11-6 (lines 313-617): Sovereign Ingestion & Trust Scoring</section>
+        <snippet>Complete formal specifications for Lock 8 (Ingestion Sovereignty) including trust scoring algorithms, batch risk analysis, anti-poisoning firewall.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/memory/ingest.py</path>
+        <kind>module</kind>
+        <symbol>ingest_document</symbol>
+        <lines>various</lines>
+        <reason>Existing document ingestion. Story 11-6 wraps this with trust scoring and tier assignment.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/knowledge/tiers.py</path>
+        <kind>module</kind>
+        <symbol>KnowledgeTier enum</symbol>
+        <lines>new in 11-5</lines>
+        <reason>Tier definitions from Story 11-5. Story 11-6 uses for tier assignment in ingestion pipeline.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/knowledge/provenance.py</path>
+        <kind>module</kind>
+        <symbol>ProvenanceVector</symbol>
+        <lines>new in 11-5</lines>
+        <reason>Provenance ledger from Story 11-5. Story 11-6 creates provenance entries during ingestion.</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/governance/cids.py</path>
+        <kind>module</kind>
+        <symbol>record_denial, detect_patterns</symbol>
+        <lines>from 11-4</lines>
+        <reason>Cognitive IDS from Story 11-4. Story 11-6 integrates ingestion firewall with C-IDS for attack detection.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0.0">PostgreSQL ORM for ingestion metadata</package>
+        <package name="pydantic" version="^2.9.0">Type validation for trust scores</package>
+        <package name="pypandoc" version="^1.13">Document format conversion (PDF, DOCX → text)</package>
+        <package name="PyPDF2" version="^3.0.1">PDF parsing for research papers</package>
+        <package name="python-jose" version="^3.5.0" extras="cryptography">SHA-256 hashing for raw data integrity</package>
+        <package name="httpx" version="^0.27.0">HTTP client for source verification</package>
+      </python>
+      <external>
+        <tool name="pytest">Unit tests for trust scoring, tier assignment</tool>
+        <tool name="pytest-asyncio">Async tests for batch ingestion</tool>
+      </external>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architectural" priority="critical">
+      Story 11-6 builds on Story 11-5 (Epistemic Ledger). Must use existing tier lattice (K0-K4), provenance ledger, and dual-persona arbitration. All ingested data must flow through 11-5 components.
+    </constraint>
+    <constraint type="security" priority="critical">
+      Ingestion firewall is the LAST DEFENSE against knowledge poisoning. Must integrate with C-IDS (11-4) for attack pattern detection. Failed firewall checks MUST quarantine data, NEVER proceed.
+    </constraint>
+    <constraint type="data" priority="critical">
+      Trust scores are immutable at creation. Only promotions (Tier 0→1, 1→2) can bump trust. No backdoor promotions. Every promotion logged in epistemic audit (11-5).
+    </constraint>
+    <constraint type="performance" priority="high">
+      Batch ingestion must handle 100+ documents with <2s trust evaluation. Use async processing, parallel scoring. Backpressure prevents memory exhaustion.
+    </constraint>
+    <constraint type="integration" priority="high">
+      BMAD ingestion binding enforces read-only access for Tier 1-2. BMAD cannot bypass ingestion pipeline. All BMAD queries must respect tier restrictions.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>IngestionPipeline.ingest()</name>
+      <kind>Function</kind>
+      <signature>async def ingest(raw_data: bytes, source_uri: str, source_type: SourceType, metadata: dict) -> IngestionResult</signature>
+      <path>src/jarvis/ingestion/pipeline.py</path>
+    </interface>
+    <interface>
+      <name>TrustScorer.score()</name>
+      <kind>Function</kind>
+      <signature>def score(entry: RawIngest) -> TrustScore</signature>
+      <path>src/jarvis/ingestion/trust_scorer.py</path>
+    </interface>
+    <interface>
+      <name>IngestionFirewall.validate()</name>
+      <kind>Function</kind>
+      <signature>def validate(raw_data: bytes, source_uri: str) -> tuple[bool, list[str]]</signature>
+      <path>src/jarvis/ingestion/ingestion_firewall.py</path>
+    </interface>
+    <interface>
+      <name>BatchOrchestrator.ingest_batch()</name>
+      <kind>Function</kind>
+      <signature>async def ingest_batch(items: list[RawIngest], policy: IngestionPolicy) -> BatchResult</signature>
+      <path>src/jarvis/ingestion/batch_orchestrator.py</path>
+    </interface>
+    <interface>
+      <name>EvidencePromoter.promote()</name>
+      <kind>Function</kind>
+      <signature>async def promote(knowledge_id: str, from_tier: KnowledgeTier, to_tier: KnowledgeTier, approver: str) -> PromotionResult</signature>
+      <path>src/jarvis/ingestion/promotion.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All ingestion sovereignty components must have ≥90% test coverage. Unit tests for: trust scoring algorithms, tier assignment, firewall validation, batch risk analysis. Integration tests for: end-to-end ingestion flow (raw → Tier 0 → scored → promoted), firewall blocking malicious data, C-IDS integration, BMAD access restrictions.
+    </standards>
+    <locations>
+      <location>tests/unit/test_ingestion_pipeline.py</location>
+      <location>tests/unit/test_trust_scorer.py</location>
+      <location>tests/unit/test_ingestion_firewall.py</location>
+      <location>tests/unit/test_batch_orchestrator.py</location>
+      <location>tests/integration/test_sovereign_ingestion_flow.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test ingestion pipeline: PDF → parsed → provenance created → Tier 0. Verify ingestion_id uniqueness, raw_hash integrity.</idea>
+      <idea ac="2">Test trust scoring: telemetry (K0) → score=1.0, news (K3) → score=0.5, scrape (K4) → score=0.2. Test source reputation weighting.</idea>
+      <idea ac="3">Test promotion: Tier 0 → 1 automatic (score ≥0.5), Tier 1 → 2 requires human approval. Verify ledger versioning, audit trail.</idea>
+      <idea ac="4">Test firewall: malformed JSON → quarantine, citation loop → block, statistical outlier → flag. Verify C-IDS integration.</idea>
+      <idea ac="5">Test class binding: news claiming "primary_evidence" → forced K4. Verify mismatch detection.</idea>
+      <idea ac="6">Test batch ingestion: 100 docs → risk score, high-risk batch → throttled. Test backpressure, abort threshold.</idea>
+      <idea ac="7">Test BMAD binding: BMAD reads Tier 1-2, cannot promote, cannot bypass firewall. Verify access denial logs.</idea>
+    </ideas>
+  </tests>
+</story-context>

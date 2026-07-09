@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Local pre-commit hook to mirror the CI docs guard. Place this repo's hooks path with:
+# git config core.hooksPath .githooks
+
+set -euo pipefail
+
+# Check staged files for infra/api patterns and require docs updates if present
+STAGED=$(git diff --cached --name-only)
+
+infra_patterns='^docker/|^alembic/|^src/.*/api/|^src/.*/migrations|^docker/|Dockerfile|docker-compose.yml'
+docs_patterns='^docs/|^README_BMAD.md|^README.md|^docs/agent-'
+
+infra_changed=false
+docs_changed=false
+
+while IFS= read -r f; do
+  if [[ $f =~ $infra_patterns ]]; then
+    infra_changed=true
+  fi
+  if [[ $f =~ $docs_patterns ]]; then
+    docs_changed=true
+  fi
+done <<< "$STAGED"
+
+if [ "$infra_changed" = true ] && [ "$docs_changed" = false ]; then
+  echo "ERROR: You staged infra/API changes but no documentation updates were staged."
+  echo "Please add or update docs under /docs or README_BMAD.md describing the change."
+  exit 1
+fi
+
+exit 0

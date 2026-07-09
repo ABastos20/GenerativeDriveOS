@@ -1,0 +1,150 @@
+services:
+  jarvis:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.jarvis
+    container_name: jarvis-app
+    ports:
+      - "8001:8001"
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-jarvis}
+      - POSTGRES_USER=${POSTGRES_USER:-jarvis}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-jarvis-dev-password}
+      - PYTHONPATH=/workspace/src
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KEYCLOAK_URL=http://keycloak:8080
+      - JARVIS_ENV=${JARVIS_ENV:-development}
+      - JARVIS_LOG_FORMAT=${JARVIS_LOG_FORMAT:-json}
+      # HIGH-PERFORMANCE: Parallel execution settings
+      - PYTHONUNBUFFERED=1
+      - PYTEST_XDIST_AUTO_NUM_WORKERS=8
+      - PIP_NO_CACHE_DIR=0
+    # Note: LLM API keys loaded from ../.env via env_file above
+    volumes:
+      - ../:/workspace:cached
+      - jarvis-home:/root/.jarvis
+      # Read-only mount of host OneDrive for cross-workspace knowledge ingestion
+      - C:/Users/abast/OneDrive:/mnt/onedrive:ro
+      # Persist CLI auth/config inside the repo for Codex & Gemini
+      - ./docker/llmsCliConfigs/.codex:/root/.codex
+      - ./docker/llmsCliConfigs/.gemini:/root/.gemini
+      # Persist Claude CLI config (single JSON file)
+      - ./docker/llmsCliConfigs/.claude:/root/.claude
+      # HIGH-PERFORMANCE: Cache volumes for faster installs
+      - pip-cache:/root/.cache/pip
+      - poetry-cache:/root/.cache/pypoetry
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    healthcheck:      
+      test: ["CMD", "/usr/local/bin/jarvis-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jarvis-network
+    # Run both FastAPI HTTP API (8000) and MCP server (8001) inside the container.
+    command: ["/usr/local/bin/jarvis-run-services"]
+    # HIGH-PERFORMANCE: Resource allocation for Ryzen 7 9800X3D (8C/16T, 64GB RAM)
+    deploy:
+      resources:
+        limits:
+          cpus: '10'      # Use 10 of 16 threads
+          memory: 32G     # Plenty of RAM (out of 64GB)
+        reservations:
+          cpus: '6'       # Guarantee 6 cores minimum
+          memory: 8G      # Guarantee 8GB minimum
+
+  postgres:
+    image: postgres
+    container_name: jarvis-postgres
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-jarvis}
+      - POSTGRES_USER=${POSTGRES_USER:-jarvis}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jarvis}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jarvis-network
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: jarvis-qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant-data:/qdrant/storage  # persists collections/points across restarts
+      - ./qdrant/config.yaml:/qdrant/config/config.yaml:ro
+    ports:
+      - "6333:6333"
+    networks:
+      - jarvis-network
+
+  redis:
+    image: redis
+    container_name: jarvis-redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - jarvis-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: jarvis-keycloak
+    command: start-dev --import-realm
+    env_file:
+      - ../.env
+    environment:
+      # Use PostgreSQL for reliable persistence
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: jarvis
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-jarvis-dev-password}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ../config/keycloak:/opt/keycloak/data/import
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jarvis-network
+
+volumes:
+  jarvis-home:
+  postgres-data:
+  qdrant-data:
+  redis-data:
+  keycloak-data:    # Persist Keycloak users and realms
+  pip-cache:        # Cache for pip (faster installs)
+  poetry-cache:     # Cache for poetry (faster dependency resolution)
+
+networks:
+  jarvis-network:
+    driver: bridge

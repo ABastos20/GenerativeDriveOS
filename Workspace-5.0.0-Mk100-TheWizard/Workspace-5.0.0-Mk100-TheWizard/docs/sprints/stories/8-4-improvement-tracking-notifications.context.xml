@@ -1,0 +1,97 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>8-4</storyId>
+    <title>Improvement Tracking & Notifications</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-4-improvement-tracking-notifications.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis operator monitoring autonomous improvements</asA>
+    <iWant>a notification system that reports what Jarvis improved</iWant>
+    <soThat>I maintain visibility and can audit autonomous actions</soThat>
+    <tasks>
+      <task id="1">Create Improvement database model with name, type, metrics, status</task>
+      <task id="2">Create ImprovementTracker class for tracking successful pipeline completions</task>
+      <task id="3">Create ImpactTracker for before/after metric capture</task>
+      <task id="4">Create NotificationService with multi-channel support</task>
+      <task id="5">Create subscription model for notification preferences</task>
+      <task id="6">Implement rate limiting for notifications</task>
+      <task id="7">Create API endpoints for improvements and notifications</task>
+      <task id="8">Create Alembic migration for improvements and notifications tables</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Improvement Model: What changed, why, when, outcome</criterion>
+    <criterion id="AC2">Auto-Detection: Track successful pipeline completions</criterion>
+    <criterion id="AC3">Impact Assessment: Measure before/after metrics</criterion>
+    <criterion id="AC4">History Storage: Persistent improvement log</criterion>
+    <criterion id="AC5">Notification Channels: Console, API, webhook, email (optional)</criterion>
+    <criterion id="AC6">Notification Levels: info, warning, critical</criterion>
+    <criterion id="AC7">Subscription Model: User subscribes to notification types</criterion>
+    <criterion id="AC8">Rate Limiting: Prevent notification spam</criterion>
+    <criterion id="AC9">Improvement Timeline: Visual history of improvements</criterion>
+    <criterion id="AC10">Impact Metrics: Charts showing improvement effects</criterion>
+    <criterion id="AC11">Rollback History: Track rollbacks and reasons</criterion>
+    <criterion id="AC12">API Endpoint: GET /api/admin/improvements</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-8-planning.md" title="Epic 8 Planning" section="8-4: Improvement Tracking" snippet="Goal: Notification system for 'I improved X' with full audit trail."/>
+      <doc path="src/jarvis/observability/tracing.py" title="Observability" section="Tracing" snippet="Pattern for trace_id and logging."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/database/models.py" kind="models" symbol="Entity" lines="509-548" reason="Pattern for SQLAlchemy models with JSONB"/>
+      <file path="src/jarvis/memory/epistemic_engine.py" kind="service" symbol="get_conflict_stats" lines="200-230" reason="Pattern for statistics aggregation"/>
+      <file path="src/jarvis/api/memory.py" kind="api" symbol="router" lines="1-50" reason="Pattern for FastAPI endpoints"/>
+      <file path="src/jarvis/observability/tracing.py" kind="observability" symbol="trace context" lines="1-50" reason="Pattern for logging and metrics"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="pydantic" version="^2.0"/>
+        <package name="alembic" version="^1.12"/>
+        <package name="httpx" version="^0.25" comment="For webhook notifications"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Notifications must be rate-limited to prevent spam</constraint>
+    <constraint>All improvements linked to pipeline_id for full traceability</constraint>
+    <constraint>Before/after metrics captured as JSONB for flexibility</constraint>
+    <constraint>Webhook notifications must have configurable endpoints</constraint>
+    <constraint>Follow existing model patterns in models.py</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/admin/improvements" kind="REST" signature="GET /api/admin/improvements?limit=50 -> {improvements: List[Improvement]}" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/improvements/{id}" kind="REST" signature="GET /api/admin/improvements/{id} -> Improvement" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/notifications" kind="REST" signature="GET /api/admin/notifications?limit=50 -> {notifications: List[Notification]}" path="src/jarvis/api/admin.py"/>
+    <interface name="POST /api/admin/notifications/subscribe" kind="REST" signature="POST /api/admin/notifications/subscribe {user_id, type} -> {status: str}" path="src/jarvis/api/admin.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with async fixtures. Test notification delivery to all channels. Mock external webhooks.</standards>
+    <locations>
+      <location>tests/unit/test_improvement_tracker.py</location>
+      <location>tests/unit/test_notification_service.py</location>
+      <location>tests/unit/test_impact_tracker.py</location>
+      <location>tests/integration/test_improvement_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC1">Test Improvement model stores all required fields</idea>
+      <idea acId="AC3">Test before/after metrics capture and comparison</idea>
+      <idea acId="AC5">Test notification delivery to console and webhook</idea>
+      <idea acId="AC7">Test subscription filtering for notifications</idea>
+      <idea acId="AC8">Test rate limiting prevents excessive notifications</idea>
+      <idea acId="AC12">Test GET /api/admin/improvements returns correct data</idea>
+    </ideas>
+  </tests>
+</story-context>

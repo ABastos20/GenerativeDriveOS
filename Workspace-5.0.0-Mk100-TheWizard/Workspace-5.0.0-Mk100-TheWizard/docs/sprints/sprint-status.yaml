@@ -1,0 +1,162 @@
+# generated: 2023-11-17
+# updated: 2025-12-10
+# project: AI Advisor
+# project_key: n/a
+# tracking_system: file-system
+# story_location: docs/sprints
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories advance sequentially to incorporate learnings, but parallel work is allowed if capacity permits
+# - Dev moves story to 'review', reviewer confirms, then Dev moves to 'done'
+
+generated: 2025-11-17
+project: AI Advisor
+project_key: n/a
+tracking_system: file-system
+story_location: docs/sprints
+
+development_status:
+  epic-1: done
+  1-1-compose-stack-service-contracts: done
+  1-2-workspace-mount-file-access-controls: done
+  1-3-configuration-secret-management: done
+  1-4-typer-bootstrap-diagnostics: done
+  epic-1-retrospective: done
+
+  epic-2: done
+  2-1-conversation-storage-schema: done
+  2-2-conversation-api-persistence: done
+  2-2-document-ingestion-pipeline: done
+  2-3-qdrant-collection-initialization: done
+  2-4-memory-retrieval-filters-api: done
+  2-5-scheduled-memory-compilation: done
+  epic-2-retrospective: done
+
+  epic-3: done
+  3-1-query-command-response-envelope: done
+  3-2-hybrid-retrieval-toggle: done
+  3-3-query-expansion-multi-query-fusion: done
+  3-4-citation-first-response-formatting: done
+  epic-3-retrospective: done
+
+  epic-4: done
+  4-1-persona-registry-configuration-cli: done
+  4-2-parallel-agent-invocation: done
+  4-3-weighted-chaos-voting-engine: done
+  4-4-response-aggregation-override-ux: done
+  4-5-conversation-analytics-provenance-storage: done
+  4-6-time-aware-retrieval-and-domain-heuristics: done
+  4-7-web-chat-console: done
+  4-8-self-aware-memory-gap-detection-autonomous-research: done
+  epic-4-retrospective: done
+
+  epic-4-5: done
+  4-5-1-arches-runtime-controller: done
+  4-5-2-agent-memory-attribution: done
+  4-5-3-memory-recency-lineage-enforcement: done
+  4-5-3b-qdrant-is-latest-payload: done
+  4-5-4-retrieval-saturation-filter: done
+  4-5-5-arches-planner-feedback-loop: done
+  4-5-6-cognitive-trace-log: done
+  4-5-7-jarvis-cognitive-console-ui: done
+  epic-4-5-retrospective: done
+
+  # Epic 4 additional stories (semantic ingestion & cognitive governance)
+  4-9-workspace-docs-canonical-ingestion: done
+  4-10-temporal-retrieval-time-slice-mode: done
+  4-11-session-archive-ingestion-integrity: done
+  4-12-meta-historical-toggles-ui: done
+  4-13-primary-document-viewer: done
+  4-13-b-ux-authority-enforcement: done
+
+  epic-5: backlog
+  5-1-provider-registry-priority-rules: backlog
+  5-2-usage-tracking-cost-ledger: backlog
+  5-3-free-tier-depletion-logic: backlog
+  5-4-cost-reporting-cli-api: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-shell-command-invocation-tooling: backlog
+  6-2-workspace-git-context-awareness: backlog
+  6-3-structured-command-outputs: backlog
+  6-4-cron-background-task-templates: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-url-fetch-parse-pipeline: backlog
+  7-2-automatic-refresh-diffing: backlog
+  7-3-web-source-governance: backlog
+  epic-7-retrospective: optional
+
+  epic-8: in-progress
+  8-1-capability-registry-gap-detection: ready-for-dev
+  8-2-bmad-invocation-pipeline: ready-for-dev
+  8-3-auto-testing-safe-hot-reload: ready-for-dev
+  8-4-improvement-tracking-notifications: ready-for-dev
+  8-5-enforce-max-loc-and-class-splitting: done
+  8-6-safety-testing-observability-foundation: done
+  8-7-autonomous-knowledge-graph: done
+  8-8-epistemic-autonomy-layer: done
+  epic-8-retrospective: optional
+
+  # Epic 9: Political Governance & Multi-Human Consensus
+  epic-9: done
+  9-1-multi-human-governance-model: done
+  9-2-disagreement-voting-engine: done
+  9-3-trust-weighted-consensus: done
+  9-4-constitutional-framework: done
+  9-5-governance-dashboard: done
+  epic-9-retrospective: done
+
+  epic-10: backlog
+  10-1-tiered-storage-schema: backlog
+  10-2-automated-migration-jobs: backlog
+  10-3-temporal-query-api: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: Mk100 "The Wizard"
+  epic-11: in-progress
+  11-1-sovereign-identity: done
+  11-1b-bmad-agent-cognition: done
+  11-2-capability-index: done
+  11-3-semantic-command-firewall: done
+  11-4-capability-code-index: done
+  11-5-knowledge-sovereignty: done
+  11-5.1-dual-persona-llm: done
+  11-5.2-audit-sink-architecture: done
+  11-5.3-stdout-observability-sink: done
+  11-5.4-postgres-sink: done
+  11-6-sovereign-ingestion: done
+  11-7-synthetic-certification: done
+  11-8-epic-closure: done  # v5.0.0 Mk100 "The Wizard" - Sovereign Mode complete
+  epic-11-retrospective: done
+  
+  # Epic 8-8: LLM Governance & Research-Oriented Context Optimization
+  # UNLOCKED: Story 11-8 complete, sovereign.json activated
+  8-8-governance-context-optimization: ready
+  
+  # Phase 17: LLM Integration & Scientific Instrumentation (COMPLETE)
+  phase-17-llm-integration: done
+  phase-17-scientific-instrumentation: done
+  phase-17-failure-mode-hunting: done

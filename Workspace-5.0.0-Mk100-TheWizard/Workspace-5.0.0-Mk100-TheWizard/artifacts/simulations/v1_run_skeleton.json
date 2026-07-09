@@ -1,0 +1,126 @@
+{
+  "users": [
+    {
+      "user_id": "elder_0",
+      "tier": 1,
+      "trust": 0.4523082877532614
+    },
+    {
+      "user_id": "elder_1",
+      "tier": 1,
+      "trust": 0.3540017208356267
+    },
+    {
+      "user_id": "citizen_0",
+      "tier": 2,
+      "trust": 0.20225557049013265
+    },
+    {
+      "user_id": "citizen_1",
+      "tier": 2,
+      "trust": 0.19241004024827632
+    },
+    {
+      "user_id": "citizen_2",
+      "tier": 2,
+      "trust": 0.28992953069116234
+    },
+    {
+      "user_id": "citizen_3",
+      "tier": 2,
+      "trust": 0.27857290261035317
+    },
+    {
+      "user_id": "noise_0",
+      "tier": 3,
+      "trust": 0.1259833438016299
+    },
+    {
+      "user_id": "noise_1",
+      "tier": 3,
+      "trust": 0.0213020482418241
+    },
+    {
+      "user_id": "noise_2",
+      "tier": 3,
+      "trust": 0.06484983655908516
+    },
+    {
+      "user_id": "noise_3",
+      "tier": 3,
+      "trust": 0.013873638526949145
+    }
+  ],
+  "telemetry": [
+    {
+      "step": 1,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 2,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 3,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 4,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": true,
+      "csi": 0.9808
+    },
+    {
+      "step": 5,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 6,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 7,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": true,
+      "csi": 0.9808
+    },
+    {
+      "step": 8,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 9,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    },
+    {
+      "step": 10,
+      "mean_trust": 0.1995,
+      "trust_variance": 0.019202,
+      "proposal_passed": false,
+      "csi": 0.9808
+    }
+  ]
+}

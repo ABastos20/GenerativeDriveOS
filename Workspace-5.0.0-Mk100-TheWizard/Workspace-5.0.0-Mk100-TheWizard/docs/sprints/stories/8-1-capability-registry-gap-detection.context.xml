@@ -1,0 +1,95 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>8-1</storyId>
+    <title>Capability Registry & Gap Detection</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/8-1-capability-registry-gap-detection.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis system evolving towards self-improvement</asA>
+    <iWant>a registry of all my capabilities and automatic detection of gaps</iWant>
+    <soThat>I can identify what I cannot do and propose improvements</soThat>
+    <tasks>
+      <task id="1">Create Capability database model with UUID, name, type, status, dependencies</task>
+      <task id="2">Create CapabilityRegistry service class with scan_codebase, register, get_all methods</task>
+      <task id="3">Implement auto-discovery of capabilities from decorators/configs</task>
+      <task id="4">Create Gap model for detected missing capabilities</task>
+      <task id="5">Create GapDetector class with detect_gaps, suggest_resolution methods</task>
+      <task id="6">Implement heuristic rules for common gap patterns</task>
+      <task id="7">Create API endpoints in admin.py for capabilities and gaps</task>
+      <task id="8">Create Alembic migration for capabilities and detected_gaps tables</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">CapabilityRegistry Class: Central registry of all Jarvis capabilities</criterion>
+    <criterion id="AC2">Capability Model: Name, type, description, status, dependencies</criterion>
+    <criterion id="AC3">Auto-Discovery: Scan codebase for registered capabilities</criterion>
+    <criterion id="AC4">API Endpoint: GET /api/admin/capabilities returns full registry</criterion>
+    <criterion id="AC5">GapDetector Agent: Identifies missing or weak capabilities</criterion>
+    <criterion id="AC6">Gap Model: What's missing, why it matters, suggested resolution</criterion>
+    <criterion id="AC7">Heuristic Rules: Pattern matching for common gaps</criterion>
+    <criterion id="AC8">API Endpoint: GET /api/admin/gaps returns detected gaps</criterion>
+    <criterion id="AC9">Capability Dashboard: UI view of all capabilities and gaps</criterion>
+    <criterion id="AC10">Gap Prioritization: Rank gaps by impact and effort</criterion>
+    <criterion id="AC11">Trend Tracking: Track gap resolution over time</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/epic-8-planning.md" title="Epic 8 Planning" section="8-1: Capability Registry" snippet="Goal: Jarvis can scan its own tools/prompts and identify missing capabilities. Mechanism: CapabilityRegistry class + GapDetector agent."/>
+      <doc path="docs/features/autonomous-knowledge-graph.md" title="Knowledge Graph" section="Phase 9" snippet="References epistemic infrastructure patterns relevant to self-awareness."/>
+      <doc path="src/jarvis/database/models.py" title="Database Models" section="Entity/Relationship" snippet="Existing model patterns for JSONB properties, UUID handling, timestamps."/>
+    </docs>
+    <code>
+      <file path="src/jarvis/database/models.py" kind="models" symbol="Entity, Relationship" lines="509-548" reason="Pattern for creating new SQLAlchemy models with UUID, JSONB, timestamps"/>
+      <file path="src/jarvis/api/memory.py" kind="api" symbol="router" lines="1-50" reason="Pattern for creating FastAPI router endpoints"/>
+      <file path="src/jarvis/memory/epistemic_engine.py" kind="service" symbol="detect_source_conflicts" lines="30-70" reason="Pattern for scanning/detecting patterns in data"/>
+      <file path="src/jarvis/memory/graph_analytics.py" kind="analytics" symbol="compute_pagerank" lines="30-60" reason="Pattern for batch computation and property updates"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="sqlalchemy" version="^2.0"/>
+        <package name="fastapi" version="^0.104"/>
+        <package name="pydantic" version="^2.0"/>
+        <package name="alembic" version="^1.12"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow existing model patterns in models.py (UUID primary key, JSONB properties, timestamps)</constraint>
+    <constraint>Use FastAPI router pattern from existing API modules</constraint>
+    <constraint>Create Alembic migration for new tables</constraint>
+    <constraint>Keep modules under 400 LOC per ADR standards</constraint>
+    <constraint>Include type hints on all public methods</constraint>
+    <constraint>Mark any auto-execution features as DORMANT until governance approval</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/admin/capabilities" kind="REST" signature="GET /api/admin/capabilities -> {capabilities: List[Capability]}" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/capabilities/{id}" kind="REST" signature="GET /api/admin/capabilities/{id} -> Capability" path="src/jarvis/api/admin.py"/>
+    <interface name="GET /api/admin/gaps" kind="REST" signature="GET /api/admin/gaps -> {gaps: List[Gap]}" path="src/jarvis/api/admin.py"/>
+    <interface name="POST /api/admin/gaps/{id}/acknowledge" kind="REST" signature="POST /api/admin/gaps/{id}/acknowledge -> {status: str}" path="src/jarvis/api/admin.py"/>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest with async fixtures. Follow patterns in tests/integration/test_graph_enrichment.py for database-backed tests. Mock external services.</standards>
+    <locations>
+      <location>tests/unit/test_capability_registry.py</location>
+      <location>tests/unit/test_gap_detector.py</location>
+      <location>tests/integration/test_admin_api.py</location>
+    </locations>
+    <ideas>
+      <idea acId="AC1">Test CapabilityRegistry instantiation and capability storage</idea>
+      <idea acId="AC3">Test auto-discovery finds decorated functions/classes</idea>
+      <idea acId="AC4">Test GET /api/admin/capabilities returns correct structure</idea>
+      <idea acId="AC5">Test GapDetector identifies known gap patterns</idea>
+      <idea acId="AC8">Test GET /api/admin/gaps returns gaps with priorities</idea>
+    </ideas>
+  </tests>
+</story-context>

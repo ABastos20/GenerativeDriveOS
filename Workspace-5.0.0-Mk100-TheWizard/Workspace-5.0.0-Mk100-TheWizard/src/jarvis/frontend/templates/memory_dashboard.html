@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>JARVIS Memory Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Real-time cognitive knowledge system visibility for JARVIS AI" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/memory_dashboard.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="layout">
+        <!-- Sidebar: Quick Stats -->
+        <aside class="sidebar">
+          <div class="sidebar-header">🧠 Memory System</div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Total Points</div>
+            <div class="stat-value" id="total-points">--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Enriched</div>
+            <div class="stat-value" id="enriched-count">--</div>
+            <div class="stat-sublabel" id="enriched-pct">--%</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Total Cost</div>
+            <div class="stat-value" id="total-cost">$--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Total Tokens</div>
+            <div class="stat-value" id="total-tokens">--</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Heuristic Rate</div>
+            <div class="stat-value" id="heuristic-rate">--%</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">Research Sessions</div>
+            <div class="stat-value" id="research-sessions">--</div>
+          </div>
+          
+          <a href="/chat" class="nav-link">💬 Chat Interface</a>
+          <a href="/governance" class="nav-link">🏛️ Governance</a>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main">
+          <div class="header">
+            <div class="status-dot connected"></div>
+            <div class="title-block">
+              <div class="title">🧠 JARVIS Memory Dashboard</div>
+              <div class="subtitle">Real-time Cognitive Knowledge System Visibility</div>
+            </div>
+            <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+          </div>
+          
+          <div class="dashboard-grid">
+            <!-- Domain Distribution -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>📊 Domain Distribution</h3>
+              </div>
+              <div class="panel-body">
+                <div class="chart-container">
+                  <canvas id="domainChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Ingestion Timeline -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>📈 Ingestion Timeline (30 days)</h3>
+              </div>
+              <div class="panel-body">
+                <div class="chart-container">
+                  <canvas id="ingestionChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Retrieval Heatmap -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>🔥 Retrieval Heatmap (7 days)</h3>
+              </div>
+              <div class="panel-body">
+                <div class="chart-container">
+                  <canvas id="heatmapChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Enrichment Coverage -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>✨ Enrichment Coverage</h3>
+              </div>
+              <div class="panel-body">
+                <div id="enrichment-stats" class="stat-grid"></div>
+                <div class="chart-container small">
+                  <canvas id="enrichmentChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Cost Tracking -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>💰 Cost Tracking (30 days)</h3>
+              </div>
+              <div class="panel-body">
+                <div id="cost-stats" class="stat-grid"></div>
+                <div id="provider-breakdown"></div>
+              </div>
+            </div>
+            
+            <!-- Heuristic Classification -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3>🎯 Heuristic Classification</h3>
+              </div>
+              <div class="panel-body">
+                <div id="heuristic-stats" class="stat-grid"></div>
+                <div class="chart-container small">
+                  <canvas id="heuristicChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Research Mode Stats -->
+            <div class="panel wide">
+              <div class="panel-header">
+                <h3>🔬 Research Mode Analytics</h3>
+              </div>
+              <div class="panel-body">
+                <div id="research-stats" class="stat-grid wide"></div>
+                <div class="chart-container">
+                  <canvas id="researchChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="timestamp" id="timestamp">Last updated: --</div>
+        </main>
+      </div>
+    </div>
+    
+    <script src="/static/js/memory_dashboard.js"></script>
+  </body>
+</html>

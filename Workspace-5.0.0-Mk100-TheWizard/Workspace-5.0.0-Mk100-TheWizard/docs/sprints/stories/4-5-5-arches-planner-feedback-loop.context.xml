@@ -1,0 +1,119 @@
+<story-context id="4-5-5-arches-planner-feedback-loop" v="1.0">
+  <metadata>
+    <epicId>4.5</epicId>
+    <storyId>4.5.5</storyId>
+    <title>ARCHES Planner Feedback Loop</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T19:00:00Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/4-5-5-arches-planner-feedback-loop.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Jarvis cognitive system</asA>
+    <iWant>the ARCHESController to react to voting outcomes and adapt plans dynamically</iWant>
+    <soThat>I can self-correct when agents disagree, fail, or produce redundant outputs</soThat>
+    <tasks>
+      <task id="1">Define PlanAction enum in src/jarvis/arches/controller.py</task>
+      <task id="2">Implement react_to_voting_outcome() method with decision logic</task>
+      <task id="3">Add structured logging for each decision path</task>
+      <task id="4">Integrate feedback loop into chat.py after voting</task>
+      <task id="5">Implement action handlers for research expansion, fallback retry, diversity adjustment</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">PlanAction enum defines: COMPLETE, TRIGGER_RESEARCH_EXPANSION, RETRY_WITH_FALLBACK, INCREASE_DIVERSITY</criterion>
+    <criterion id="2">Controller detects voting ties and high disagreement (> 0.7 threshold)</criterion>
+    <criterion id="3">High disagreement triggers research expansion action</criterion>
+    <criterion id="4">Agent execution failures trigger retry with fallback agents</criterion>
+    <criterion id="5">High chunk overlap (> 0.8) triggers diversity filter increase</criterion>
+    <criterion id="6">All plan actions logged with structured events</criterion>
+    <criterion id="7">Actions executed automatically after voting in chat flow</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprints/epic-4.5-arches-stabilization.md</path>
+        <title>Epic 4.5: ARCHES Cognitive Stabilization</title>
+        <section>Story 4.5.5: ARCHES Planner Feedback Loop</section>
+        <snippet>Enable ARCHES controller to react to execution outcomes and adapt plans dynamically.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/jarvis/arches/controller.py</path>
+        <kind>service</kind>
+        <symbol>ARCHESController</symbol>
+        <reason>Extend with react_to_voting_outcome() and PlanAction enum (depends on 4.5.1)</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/agents/consensus.py</path>
+        <kind>service</kind>
+        <symbol>VotingResult</symbol>
+        <reason>Input to feedback loop - provides disagreement_score, failed_agents</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/api/chat.py</path>
+        <kind>endpoint</kind>
+        <symbol>chat_endpoint</symbol>
+        <reason>Integration point - call react_to_voting_outcome() after voting</reason>
+      </artifact>
+      <artifact>
+        <path>src/jarvis/memory/research_executor.py</path>
+        <kind>service</kind>
+        <symbol>execute_research</symbol>
+        <reason>Called when TRIGGER_RESEARCH_EXPANSION action is taken</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="enum" version="stdlib" reason="PlanAction enum"/>
+        <package name="structlog" version=">=23.0.0" reason="Structured logging"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Disagreement threshold 0.7 chosen to trigger on meaningful disagreement, not noise</constraint>
+    <constraint>Chunk overlap computed as 1 - (unique_docs / total_chunks)</constraint>
+    <constraint>Fallback strategy: re-invoke with subset of personas if some failed</constraint>
+    <constraint>Actions should be idempotent - same state should yield same action</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PlanAction</name>
+      <kind>enum</kind>
+      <signature>class PlanAction(Enum): COMPLETE, TRIGGER_RESEARCH_EXPANSION, RETRY_WITH_FALLBACK, INCREASE_DIVERSITY</signature>
+      <path>src/jarvis/arches/controller.py</path>
+    </interface>
+    <interface>
+      <name>react_to_voting_outcome</name>
+      <kind>method</kind>
+      <signature>def react_to_voting_outcome(session: ARCHESSession, voting_result: VotingResult) -> PlanAction</signature>
+      <path>src/jarvis/arches/controller.py</path>
+    </interface>
+    <interface>
+      <name>_detect_chunk_overlap</name>
+      <kind>method</kind>
+      <signature>def _detect_chunk_overlap(memory_state: Dict) -> float</signature>
+      <path>src/jarvis/arches/controller.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use pytest. Mock VotingResult with various disagreement scores. Test all decision branches.</standards>
+    <locations>
+      <location>tests/unit/arches/test_feedback_loop.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test PlanAction enum values</idea>
+      <idea ac="2,3">Test high disagreement triggers research expansion</idea>
+      <idea ac="4">Test failed agents trigger retry</idea>
+      <idea ac="5">Test high overlap triggers diversity increase</idea>
+      <idea ac="6">Verify structured logs for each action</idea>
+    </ideas>
+  </tests>
+</story-context>

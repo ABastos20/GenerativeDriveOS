@@ -1,0 +1,128 @@
+<story-context id="11-3-semantic-command-firewall" v="1.0">
+  <metadata>
+    <epicId>11</epicId>
+    <storyId>11-3</storyId>
+    <title>Semantic Command Firewall & Tool Sovereignty</title>
+    <status>done</status>
+    <generatedAt>2025-12-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprints/stories/11-3-semantic-command-firewall.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>System Architect</asA>
+    <iWant>a semantic command firewall between BMAD prompts and external LLM tools</iWant>
+    <soThat>Mk100 "The Wizard" can never be tricked into developer mode or execution behaviours</soThat>
+    <tasks>
+      <task id="1">Prompt Safety Policy - Create config/prompt_safety.json</task>
+      <task id="2">Implement PromptFirewall class</task>
+      <task id="3">Harden LocalCLIProvider with safe-mode flags</task>
+      <task id="4">Workflow Capability Ceiling enforcement</task>
+      <task id="5">Telemetry and Drift Detection</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Prompt Safety Policy">
+      <item>prompt_safety section in config file</item>
+      <item>Global forbidden patterns (developer mode, run command, etc.)</item>
+      <item>Per-capability forbidden patterns</item>
+      <item>Default policy: filter+deny</item>
+      <item>Versioned and immutable at runtime</item>
+    </ac>
+    <ac id="2" title="Prompt Filter Engine">
+      <item>PromptFirewall class in prompt_firewall.py</item>
+      <item>evaluate() method returning PromptDecision</item>
+      <item>PromptDecision: verdict, reason, matched_rules</item>
+      <item>Configurable regex/heuristic rules</item>
+      <item>Unit tests for allow/deny/borderline</item>
+    </ac>
+    <ac id="3" title="CLI Safe-Mode Invocation">
+      <item>codex: exec --json, no tools/sandbox</item>
+      <item>claude: -p --output-format json, no file access</item>
+      <item>Narrative-only preamble prepended</item>
+      <item>Failures abort, no retry in unsafe mode</item>
+    </ac>
+    <ac id="4" title="Workflow Capability Ceiling">
+      <item>max_capability field in workflow definitions</item>
+      <item>requires_capability per step</item>
+      <item>Ceiling enforcement before dispatch</item>
+      <item>Chain: CapabilityIndex → PromptFirewall → Workflow</item>
+    </ac>
+    <ac id="5" title="Telemetry and Drift Detection">
+      <item>prompt_denied telemetry events</item>
+      <item>Rolling denial counter per agent</item>
+      <item>Intent drift alert on N denials in window</item>
+      <item>Denied prompts never forwarded</item>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprints/stories/11-1b-bmad-agent-cognition.md" title="BMAD Story" section="Five Locks" snippet="Defines Locks 1-3 (Sandboxing, Math Sovereignty, Audit) and references Lock 5"/>
+      <doc path="docs/sprints/stories/11-2-capability-index.md" title="Capability Index Story" section="Architecture" snippet="Defines Lock 4: constitutional permission gate"/>
+      <doc path="docs/sprints/stories/11-3-semantic-command-firewall.md" title="This Story" section="All" snippet="Defines Lock 5: Prompt and Tool Sovereignty"/>
+    </docs>
+    <code>
+      <file path="src/jarvis/llm/providers.py" kind="provider" symbol="LocalCLIProvider" reason="Target for safe-mode flag enforcement and preamble injection"/>
+      <file path="src/jarvis/llm/client.py" kind="client" symbol="call_llm" reason="LLM call path where firewall must be wired"/>
+      <file path="src/jarvis/agents/reasoning_engine.py" kind="engine" symbol="ReasoningEngine" reason="Integration point for prompt firewall check"/>
+      <file path="src/jarvis/governance/capabilities.py" kind="service" symbol="CapabilityIndex" reason="Upstream check before prompt firewall"/>
+      <file path="scripts/tests/simulate_hybrid.py" kind="test" symbol="HybridSimulation" reason="Integration testing with prompt filtering"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="re" version="stdlib" reason="Regex pattern matching for prompt filtering"/>
+        <package name="structlog" version=">=24.0.0" reason="Telemetry logging for denied prompts"/>
+      </python>
+      <cli>
+        <tool name="codex" flags="exec --json --skip-git-repo-check" reason="Safe-mode invocation"/>
+        <tool name="claude" flags="-p --output-format json" reason="Safe-mode invocation"/>
+      </cli>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="safety">Prompts containing developer-mode patterns must be blocked</constraint>
+    <constraint type="safety">CLI tools must use safe-mode flags preventing file/shell access</constraint>
+    <constraint type="safety">Narrative-only preamble must be prepended to all CLI prompts</constraint>
+    <constraint type="safety">Denied prompts must never be forwarded to external tools</constraint>
+    <constraint type="architecture">Workflow steps cannot exceed max_capability ceiling</constraint>
+    <constraint type="architecture">Enforcement chain: CapabilityIndex → PromptFirewall → Workflow ceiling</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="PromptFirewall.evaluate" kind="method" path="src/jarvis/governance/prompt_firewall.py" signature="evaluate(prompt: str, capability: str | None = None, agent_role: str | None = None) -> PromptDecision"/>
+    <interface name="PromptDecision" kind="dataclass" path="src/jarvis/governance/prompt_firewall.py" signature="@dataclass PromptDecision: verdict: str, reason: str, matched_rules: List[str]"/>
+    <interface name="LocalCLIProvider._build_command" kind="method" path="src/jarvis/llm/providers.py" signature="_build_command(prompt: str, output_file: str = None) -> list[str]"/>
+  </interfaces>
+
+  <tests>
+    <standards>pytest-based unit tests for PromptFirewall decisions and LocalCLIProvider command building. Integration tests via simulate_hybrid.py.</standards>
+    <locations>
+      <location>tests/governance/test_prompt_firewall.py</location>
+      <location>tests/llm/test_providers.py</location>
+      <location>scripts/tests/simulate_hybrid.py</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test global forbidden patterns block "developer mode", "run command"</idea>
+      <idea ac="1">Test per-capability patterns block "implement" for write_story</idea>
+      <idea ac="2">Test PromptFirewall.evaluate returns deny for unsafe prompts</idea>
+      <idea ac="2">Test PromptFirewall.evaluate returns allow for narrative prompts</idea>
+      <idea ac="3">Test codex invocation includes --json flag</idea>
+      <idea ac="3">Test narrative preamble is prepended to prompts</idea>
+      <idea ac="4">Test workflow step exceeding ceiling fails fast</idea>
+      <idea ac="4">Test enforcement chain order is correct</idea>
+      <idea ac="5">Test prompt_denied events are emitted</idea>
+      <idea ac="5">Test drift alert fires after N denials</idea>
+    </ideas>
+  </tests>
+
+  <fiveLocks>
+    <lock id="1" name="LLM Sandboxing" story="11-1b" description="LLM cannot directly act"/>
+    <lock id="2" name="Math Sovereignty" story="11-1b" description="LLM cannot choose goals"/>
+    <lock id="3" name="Audit Logs" story="11-1b" description="LLM cannot hide epistemic damage"/>
+    <lock id="4" name="Capability Index" story="11-2" description="LLM cannot request forbidden actions"/>
+    <lock id="5" name="Prompt and Tool Sovereignty" story="11-3" description="LLM cannot self-escalate into developer mode"/>
+  </fiveLocks>
+</story-context>

@@ -1,0 +1,50 @@
+name: Docs Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run docs guard script
+        run: |
+          # Compare PR head against base and fail if infra/api changes are present without docs updates
+          BASE_REF=${{ github.event.pull_request.base.ref }}
+          HEAD_REF=${{ github.event.pull_request.head.ref }}
+          echo "Base: $BASE_REF, Head: $HEAD_REF"
+          git fetch origin $BASE_REF --depth=1
+          DIFF_FILES=$(git diff --name-only FETCH_HEAD...HEAD)
+          echo "Changed files:" && echo "$DIFF_FILES"
+
+          # Patterns considered infra or API changes that must be accompanied by docs updates
+          infra_patterns='^docker/|^alembic/|^src/.*/api/|^src/.*/migrations|^docker/|Dockerfile|docker-compose.yml'
+          docs_patterns='^docs/|^README_BMAD.md|^README.md|^docs/agent-'
+
+          infra_changed=false
+          docs_changed=false
+
+          while IFS= read -r f; do
+            if [[ $f =~ $infra_patterns ]]; then
+              infra_changed=true
+            fi
+            if [[ $f =~ $docs_patterns ]]; then
+              docs_changed=true
+            fi
+          done <<< "$DIFF_FILES"
+
+          echo "infra_changed=$infra_changed, docs_changed=$docs_changed"
+
+          if [ "$infra_changed" = true ] && [ "$docs_changed" = false ]; then
+            echo "ERROR: Pull request contains infra/API changes but no documentation updates were detected."
+            echo "Please add or update docs under /docs or README_BMAD.md describing the change."
+            exit 1
+          fi
+
+          echo "Docs guard passed."
