@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git restore:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker restart:*)",
+      "Bash(docker logs:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "SlashCommand(/bmad:bmm:workflows:create-story)",
+      "Bash(for dir in docs/architecture docs/archive docs/chatOrientations docs/datasetRules docs/features docs/guides docs/jarvis docs/legacy docs/operations docs/performance docs/reference docs/sessions docs/sprints docs/status)",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(git tag:*)",
+      "Bash(wc:*)",
+      "Bash(xargs:*)",
+      "SlashCommand(/bmad:bmm:workflows:create-story 11-2)",
+      "SlashCommand(/bmad:bmm:workflows:create-story:*)",
+      "Bash(pytest:*)",
+      "SlashCommand(/bmad:bmm:workflows:story-done 11-5)",
+      "SlashCommand(/bmad:bmm:workflows:story-done:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
