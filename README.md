@@ -299,8 +299,7 @@ over conversational fluency.
 
 # License
 
-License information coming soon.
-
+. GNU AGPLv3 (Affero General Public License) 
 ---
 
 # GenerativeDrive
